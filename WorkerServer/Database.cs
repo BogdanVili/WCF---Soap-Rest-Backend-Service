@@ -11,12 +11,11 @@ namespace WorkerServer
     class Database
     {
         private static Database databaseInstance;
-
-        private SqlConnection connection = new SqlConnection();
+        string connectionString = "Data Source = DESKTOP-2TUI0SB\\SQLEXPRESS; Initial Catalog = Schneider_Zadatak_1; Integrated Security = True";
 
         private Database()
         {
-            this.Connect();
+            Connect();
         }
 
         public static Database GetInstance()
@@ -30,23 +29,26 @@ namespace WorkerServer
 
         private void Connect()
         {
-            string connectionString = "Data Source = DESKTOP-2TUI0SB\\SQLEXPRESS; Initial Catalog = Schneider_Zadatak_1; Integrated Security = True";
-            using (connection)
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                connection.ConnectionString = connectionString;
-
                 connection.Open();
 
                 Console.WriteLine("State: {0}", connection.State);
                 Console.WriteLine("ConnectionString: {0}", connection.ConnectionString);
+
+                connection.Close();
             }
         }
 
         List<Firm> firms = new List<Firm>();
+
+        #region Add
         public void AddWorker(Firm firm, Department department, Employee employee)
         {
-            using (connection)
+            using (SqlConnection connection = new SqlConnection(connectionString))
             {
+                string _query = "";
+
                 if (firms.Contains(firm))
                 {
                     Firm _firm = firms.Find(f => f.Id == firm.Id);
@@ -56,13 +58,13 @@ namespace WorkerServer
                         Department _department = _firm.Departments.Find(d => d.Id == department.Id);
 
                         _department.Employees.Add(employee);
-                        //add employee, plus working
                     }
                     else
                     {
                         _firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
                         _firm.Departments.Add(department);
                         //add department and employee, plus working
+                        _query += SqlQueryBuilder.InsertDepartmentBuilder(department);
                     }
                 }
                 else
@@ -71,9 +73,34 @@ namespace WorkerServer
                     firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
                     firms.Add(firm);
                     //add firm department and employee, plus working
-                } 
+                    _query += SqlQueryBuilder.InsertFirmBuilder(firm);
+                    _query += SqlQueryBuilder.InsertDepartmentBuilder(department);
+                }
+
+                _query += SqlQueryBuilder.InsertEmployeeBuilder(employee);
+                _query += SqlQueryBuilder.InsertWorkingBuilder(firm.Id.ToString(), department.Id.ToString(), employee.JMBG.ToString());
+
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    command.ExecuteNonQuery();
+                    Console.WriteLine("Records Inserted Successfully");
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
         }
+
+
+
+        #endregion
 
         public void UpdateWorker()
         {
