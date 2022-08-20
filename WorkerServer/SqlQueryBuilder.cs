@@ -26,10 +26,15 @@ namespace WorkerServer
                    "VALUES " + $"(\'{employee.FirstName}\', \'{employee.LastName}\', \'{employee.DateOfBirth.ToString("yyyyMMdd")}\', {employee.JMBG}, {Convert.ToInt32(employee.DeservesRaise)}, \'{employee.Email}\')" + ";\n";
         }
 
-        public static string InsertWorkingBuilder(string firmId, string departmentId, string employeeId)
+        public static string InsertWorkingBuilder(int firmId, int departmentId, long employeeId)
         {
             return "INSERT INTO " + "Working (Id_Firm, Id_Department, Id_Employee) " + 
                    "VALUES " + $"({firmId},{departmentId},{employeeId})" + ";\n";
+        }
+
+        public static string SelectAll(string obj)
+        {
+            return $"SELECT * FROM {obj};\n";
         }
     }
 }

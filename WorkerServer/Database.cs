@@ -1,6 +1,7 @@
 ﻿using Common.Model;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -63,7 +64,6 @@ namespace WorkerServer
                     {
                         _firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
                         _firm.Departments.Add(department);
-                        //add department and employee, plus working
                         _query += SqlQueryBuilder.InsertDepartmentBuilder(department);
                     }
                 }
@@ -72,13 +72,12 @@ namespace WorkerServer
                     firm.Departments.Add(department);
                     firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
                     firms.Add(firm);
-                    //add firm department and employee, plus working
                     _query += SqlQueryBuilder.InsertFirmBuilder(firm);
                     _query += SqlQueryBuilder.InsertDepartmentBuilder(department);
                 }
 
                 _query += SqlQueryBuilder.InsertEmployeeBuilder(employee);
-                _query += SqlQueryBuilder.InsertWorkingBuilder(firm.Id.ToString(), department.Id.ToString(), employee.JMBG.ToString());
+                _query += SqlQueryBuilder.InsertWorkingBuilder(firm.Id, department.Id, employee.JMBG);
 
                 try
                 {
@@ -109,7 +108,42 @@ namespace WorkerServer
 
         public void ReadWorkers()
         {
+            //First read Working, then Firm, then Department, then Employee, put all into lists
+            //Take Working find Firm add Department add Worker
+            //After adding department check for id so as to not add again
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                string _query = "";
+                _query += SqlQueryBuilder.SelectAll("Firm");
 
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+                    DataTable schemaTable = reader.GetSchemaTable();
+
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            Console.WriteLine($"{reader.GetValue(0)},{reader.GetValue(1)}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No rows found.");
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
         }
     }
 }
