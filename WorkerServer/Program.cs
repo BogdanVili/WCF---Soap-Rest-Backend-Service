@@ -1,4 +1,5 @@
-﻿using Common.Model;
+﻿using Common;
+using Common.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +12,11 @@ namespace WorkerServer
     {
         static void Main(string[] args)
         {
-            Database database = Database.GetInstance();
-            System.Threading.Thread.Sleep(1000);
-            //database.AddWorker(new Firm("Bosch", 1), 
-            //                   new Department("VeshoMashino", 1), 
-            //                   new Employee("Imerko", "Prezimenkovic", DateTime.Now, 1111, true, "lepmejl@mejl"));
+            Database database = Database.GetInstance();        
             database.ReadWorkers();
+            //database.AddWorker(new Firm("Schneider", 1),
+            //                  new Department("ElectroDistribution", 2),
+            //                  new Employee("Imerko3", "Prezimenkovic3", DateTime.Now, 3333, false, "lepmejl@mejl"));
             Console.ReadKey();
         }
     }

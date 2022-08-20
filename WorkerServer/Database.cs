@@ -1,4 +1,5 @@
-﻿using Common.Model;
+﻿using Common;
+using Common.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -41,80 +42,26 @@ namespace WorkerServer
             }
         }
 
-        List<Firm> firms = new List<Firm>();
 
-        #region Add
-        public void AddWorker(Firm firm, Department department, Employee employee)
-        {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                string _query = "";
-
-                if (firms.Contains(firm))
-                {
-                    Firm _firm = firms.Find(f => f.Id == firm.Id);
-                
-                    if(_firm.Departments.Contains(department))
-                    {
-                        Department _department = _firm.Departments.Find(d => d.Id == department.Id);
-
-                        _department.Employees.Add(employee);
-                    }
-                    else
-                    {
-                        _firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
-                        _firm.Departments.Add(department);
-                        _query += SqlQueryBuilder.InsertDepartmentBuilder(department);
-                    }
-                }
-                else
-                {
-                    firm.Departments.Add(department);
-                    firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
-                    firms.Add(firm);
-                    _query += SqlQueryBuilder.InsertFirmBuilder(firm);
-                    _query += SqlQueryBuilder.InsertDepartmentBuilder(department);
-                }
-
-                _query += SqlQueryBuilder.InsertEmployeeBuilder(employee);
-                _query += SqlQueryBuilder.InsertWorkingBuilder(firm.Id, department.Id, employee.JMBG);
-
-                try
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    command.ExecuteNonQuery();
-                    Console.WriteLine("Records Inserted Successfully");
-                }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                }
-                finally
-                {
-                    connection.Close();
-                }
-            }
-        }
-
-
-
-        #endregion
-
-        public void UpdateWorker()
-        {
-
-        }
-
+        #region Read
         public void ReadWorkers()
         {
-            //First read Working, then Firm, then Department, then Employee, put all into lists
-            //Take Working find Firm add Department add Worker
-            //After adding department check for id so as to not add again
+            ReadTable("Working");
+            ReadTable("Firm");
+            ReadTable("Department");
+            ReadTable("Employee");
+
+            ConnectWorkers();
+
+            Console.WriteLine("Loading Models done.\n");
+        }
+
+        private void ReadTable(string tableName)
+        {
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 string _query = "";
-                _query += SqlQueryBuilder.SelectAll("Firm");
+                _query += SqlQueryBuilder.SelectAll(tableName);
 
                 try
                 {
@@ -127,7 +74,31 @@ namespace WorkerServer
                     {
                         while (reader.Read())
                         {
-                            Console.WriteLine($"{reader.GetValue(0)},{reader.GetValue(1)}");
+                            switch (tableName)
+                            {
+                                case "Working":
+                                    Collections.workings.Add(new Working((int)reader.GetValue(0),
+                                                                         (long)reader.GetValue(1),
+                                                                         (int)reader.GetValue(2)));
+                                    break;
+                                case "Firm":
+                                    Collections.firms.Add(new Firm(reader.GetValue(0).ToString(),
+                                                                   (int)reader.GetValue(1)));
+                                    break;
+                                case "Department":
+                                    Collections.departments.Add(new Department(reader.GetValue(0).ToString(),
+                                                                               (int)reader.GetValue(1)));
+                                    break;
+                                case "Employee":
+                                    Collections.employees.Add(new Employee(reader.GetValue(0).ToString(),
+                                                                           reader.GetValue(1).ToString(),
+                                                                           DateTime.Parse(reader.GetValue(2).ToString()),
+                                                                           (long)reader.GetValue(3),
+                                                                           (bool)reader.GetValue(4),
+                                                                           reader.GetValue(5).ToString()));
+                                    break;
+
+                            }
                         }
                     }
                     else
@@ -145,5 +116,121 @@ namespace WorkerServer
                 }
             }
         }
+
+        private void ConnectWorkers()
+        {
+            Firm _currentFirm;
+            Department _currentDepartment;
+            Employee _currentEmployee;
+
+            foreach (Working working in Collections.workings)
+            {
+                _currentFirm = Collections.firms.Find(f => f.Id == working.FirmId);
+                _currentDepartment = Collections.departments.Find(d => d.Id == working.DepartmentId);
+                _currentEmployee = Collections.employees.Find(e => e.JMBG == working.EmployeeId);
+                if (!_currentFirm.Departments.Contains(_currentDepartment))
+                {
+                    _currentFirm.Departments.Add(_currentDepartment);
+                }
+                _currentFirm.Departments.Find(d => d.Id == working.DepartmentId).Employees.Add(_currentEmployee);
+            }
+        }
+        #endregion
+
+        #region Add
+        public void AddWorker(Firm firm, Department department, Employee employee)
+        {
+            string _query = QueryConstructor(firm, department, employee);
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    command.ExecuteNonQuery();
+                    Console.WriteLine("Records Inserted Successfully");
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            CollectionsLinker(firm, department, employee);
+        }
+
+        private string QueryConstructor(Firm firm, Department department, Employee employee)
+        {
+            string returnQuery = "";
+
+            Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+            Department _department = null;
+
+            if (_firm != null)
+            {
+                _department = _firm.Departments.Find(d => d.Id == department.Id);
+            }
+
+            returnQuery += SqlQueryBuilder.InsertEmployeeBuilder(employee);
+
+            if (_firm != null && _department == null)
+            {
+                returnQuery += SqlQueryBuilder.InsertDepartmentBuilder(department);
+            }
+
+            if (_firm == null)
+            {
+                returnQuery += SqlQueryBuilder.InsertDepartmentBuilder(department);
+                returnQuery += SqlQueryBuilder.InsertFirmBuilder(firm);
+            }
+
+            returnQuery += SqlQueryBuilder.InsertWorkingBuilder(firm.Id, department.Id, employee.JMBG);
+
+            return returnQuery;
+        }
+
+        private void CollectionsLinker(Firm firm, Department department, Employee employee)
+        {
+
+            Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+            Department _department = null;
+
+            if (_firm != null)
+            {
+                _department = _firm.Departments.Find(d => d.Id == department.Id);
+            }
+
+            if (_firm != null && _department != null)
+            {
+                _department.Employees.Add(employee);
+            }
+
+            if (_firm != null && _department == null)
+            {
+                _firm.Departments.Add(department);
+                _firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
+            }
+
+            if (_firm == null)
+            {
+                firm.Departments.Add(department);
+                firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
+                Collections.firms.Add(firm);
+            }
+        }
+        #endregion
+
+        #region Update
+        public void UpdateWorker()
+        {
+
+        }
+        #endregion
+
     }
 }
