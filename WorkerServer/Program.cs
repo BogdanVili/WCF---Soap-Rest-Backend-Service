@@ -13,10 +13,10 @@ namespace WorkerServer
         static void Main(string[] args)
         {
             Database database = Database.GetInstance();        
-            database.ReadWorkers();
-            //database.AddWorker(new Firm("Schneider", 1),
-            //                  new Department("ElectroDistribution", 2),
-            //                  new Employee("Imerko3", "Prezimenkovic3", DateTime.Now, 3333, false, "lepmejl@mejl"));
+            database.ReadModels();
+            database.UpdateWorker(new Firm("Schneider5", 1),
+                              new Department("ElectroDistribution5", 2),
+                              new Employee("Imerko5", "Prezimenkovic5", new DateTime(2022, 8, 20), 3333, true, "lepmejl3@mejl"));
             Console.ReadKey();
         }
     }

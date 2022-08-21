@@ -44,14 +44,14 @@ namespace WorkerServer
 
 
         #region Read
-        public void ReadWorkers()
+        public void ReadModels()
         {
             ReadTable("Working");
             ReadTable("Firm");
             ReadTable("Department");
             ReadTable("Employee");
 
-            ConnectWorkers();
+            ConnectModelsWithWorking();
 
             Console.WriteLine("Loading Models done.\n");
         }
@@ -82,20 +82,20 @@ namespace WorkerServer
                                                                          (int)reader.GetValue(2)));
                                     break;
                                 case "Firm":
-                                    Collections.firms.Add(new Firm(reader.GetValue(0).ToString(),
+                                    Collections.firms.Add(new Firm(reader.GetValue(0).ToString().Trim(),
                                                                    (int)reader.GetValue(1)));
                                     break;
                                 case "Department":
-                                    Collections.departments.Add(new Department(reader.GetValue(0).ToString(),
+                                    Collections.departments.Add(new Department(reader.GetValue(0).ToString().Trim(),
                                                                                (int)reader.GetValue(1)));
                                     break;
                                 case "Employee":
-                                    Collections.employees.Add(new Employee(reader.GetValue(0).ToString(),
-                                                                           reader.GetValue(1).ToString(),
+                                    Collections.employees.Add(new Employee(reader.GetValue(0).ToString().Trim(),
+                                                                           reader.GetValue(1).ToString().Trim(),
                                                                            DateTime.Parse(reader.GetValue(2).ToString()),
                                                                            (long)reader.GetValue(3),
                                                                            (bool)reader.GetValue(4),
-                                                                           reader.GetValue(5).ToString()));
+                                                                           reader.GetValue(5).ToString().Trim()));
                                     break;
 
                             }
@@ -117,7 +117,7 @@ namespace WorkerServer
             }
         }
 
-        private void ConnectWorkers()
+        private void ConnectModelsWithWorking()
         {
             Firm _currentFirm;
             Department _currentDepartment;
@@ -132,7 +132,11 @@ namespace WorkerServer
                 {
                     _currentFirm.Departments.Add(_currentDepartment);
                 }
-                _currentFirm.Departments.Find(d => d.Id == working.DepartmentId).Employees.Add(_currentEmployee);
+
+                if(!_currentFirm.Departments.Find(d => d.Id == working.DepartmentId).Employees.Contains(_currentEmployee))
+                {
+                    _currentFirm.Departments.Find(d => d.Id == working.DepartmentId).Employees.Add(_currentEmployee);
+                }
             }
         }
         #endregion
@@ -140,31 +144,34 @@ namespace WorkerServer
         #region Add
         public void AddWorker(Firm firm, Department department, Employee employee)
         {
-            string _query = QueryConstructor(firm, department, employee);
+            string _query = AddQueryConstructor(firm, department, employee);
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            if (_query != "")
             {
-                try
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    command.ExecuteNonQuery();
-                    Console.WriteLine("Records Inserted Successfully");
+                    try
+                    {
+                        connection.Open();
+                        SqlCommand command = new SqlCommand(_query, connection);
+                        command.ExecuteNonQuery();
+                        Console.WriteLine("Inserted Successfully");
+                    }
+                    catch (SqlException e)
+                    {
+                        Console.WriteLine("Error Generated. Details: " + e.ToString());
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
                 }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                }
-                finally
-                {
-                    connection.Close();
-                }
-            }
 
-            CollectionsLinker(firm, department, employee);
+                CollectionsLinker(firm, department, employee);
+            }
         }
 
-        private string QueryConstructor(Firm firm, Department department, Employee employee)
+        private string AddQueryConstructor(Firm firm, Department department, Employee employee)
         {
             string returnQuery = "";
 
@@ -226,11 +233,82 @@ namespace WorkerServer
         #endregion
 
         #region Update
-        public void UpdateWorker()
+        public void UpdateWorker(Firm firm, Department department, Employee employee)
         {
+            string _query = UpdateQueryConstructor(firm, department, employee);
 
+            if (_query != "")
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    try
+                    {
+                        connection.Open();
+                        SqlCommand command = new SqlCommand(_query, connection);
+                        command.ExecuteNonQuery();
+                        Console.WriteLine("Updated Successfully");
+                    }
+                    catch (SqlException e)
+                    {
+                        Console.WriteLine("Error Generated. Details: " + e.ToString());
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                }
+
+                CollectionsUpdater(firm, department, employee);
+            }
+        }
+
+        private string UpdateQueryConstructor(Firm firm, Department department, Employee employee)
+        {
+            string returnQuery = "";
+            if (!Collections.firms.Contains(firm))
+            {
+                returnQuery += SqlQueryBuilder.UpdateFirmBuilder(firm);
+            }
+
+            if(!Collections.departments.Contains(department))
+            {
+                returnQuery += SqlQueryBuilder.UpdateDepartmentBuilder(department);
+            }
+
+            if(!Collections.employees.Contains(employee))
+            {
+                returnQuery += SqlQueryBuilder.UpdateEmployeeBuilder(employee);
+            }
+            return returnQuery;
+        }
+
+        private void CollectionsUpdater(Firm firm, Department department, Employee employee)
+        {
+            if(!Collections.firms.Contains(firm))
+            {
+                Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+                int _firmIndex = Collections.firms.IndexOf(_firm);
+                Collections.firms[_firmIndex] = firm;
+            }
+
+            if (!Collections.departments.Contains(department))
+            {
+                Department _department = Collections.departments.Find(d => d.Id == department.Id);
+                int _departmentIndex = Collections.departments.IndexOf(_department);
+                Collections.departments[_departmentIndex] = department;
+            }
+
+            if(!Collections.employees.Contains(employee))
+            {
+                Employee _employee = Collections.employees.Find(e => e.JMBG == employee.JMBG);
+                int _employeeIndex = Collections.employees.IndexOf(_employee);
+                Collections.employees[_employeeIndex] = employee;
+            }
+
+            ConnectModelsWithWorking();
         }
         #endregion
 
     }
 }
+

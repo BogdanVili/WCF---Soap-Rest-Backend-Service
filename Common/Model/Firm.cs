@@ -38,5 +38,12 @@ namespace Common.Model
             Id = id;
             departments = new List<Department>();
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Firm firm &&
+                   Name == firm.Name &&
+                   Id == firm.Id;
+        }
     }
 }

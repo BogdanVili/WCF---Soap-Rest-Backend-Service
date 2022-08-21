@@ -65,5 +65,16 @@ namespace Common.Model
             DeservesRaise = deservesRaise;
             Email = email;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Employee employee &&
+                   FirstName == employee.FirstName &&
+                   LastName == employee.LastName &&
+                   DateOfBirth == employee.DateOfBirth &&
+                   JMBG == employee.JMBG &&
+                   DeservesRaise == employee.DeservesRaise &&
+                   Email == employee.Email;
+        }
     }
 }
