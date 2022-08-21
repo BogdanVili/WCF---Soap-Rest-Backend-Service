@@ -167,7 +167,7 @@ namespace WorkerServer
                     }
                 }
 
-                CollectionsLinker(firm, department, employee);
+                CollectionsAddUpdater(firm, department, employee);
             }
         }
 
@@ -201,7 +201,7 @@ namespace WorkerServer
             return returnQuery;
         }
 
-        private void CollectionsLinker(Firm firm, Department department, Employee employee)
+        private void CollectionsAddUpdater(Firm firm, Department department, Employee employee)
         {
 
             Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
@@ -258,7 +258,7 @@ namespace WorkerServer
                     }
                 }
 
-                CollectionsUpdater(firm, department, employee);
+                CollectionsUpdateUpdater(firm, department, employee);
             }
         }
 
@@ -282,7 +282,7 @@ namespace WorkerServer
             return returnQuery;
         }
 
-        private void CollectionsUpdater(Firm firm, Department department, Employee employee)
+        private void CollectionsUpdateUpdater(Firm firm, Department department, Employee employee)
         {
             if(!Collections.firms.Contains(firm))
             {
@@ -309,6 +309,155 @@ namespace WorkerServer
         }
         #endregion
 
+        #region Delete
+        public void DeleteWorker(Firm firm, Department department, Employee employee)
+        {
+            string _query = DeleteQueryConstructor(firm, department, employee);
+
+            if (_query != "")
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    try
+                    {
+                        connection.Open();
+                        SqlCommand command = new SqlCommand(_query, connection);
+                        command.ExecuteNonQuery();
+                        Console.WriteLine("Updated Successfully");
+                    }
+                    catch (SqlException e)
+                    {
+                        Console.WriteLine("Error Generated. Details: " + e.ToString());
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                }
+
+                CollectionsDeleteUpdater(firm, department, employee);
+            }
+        }
+
+        private string DeleteQueryConstructor(Firm firm, Department department, Employee employee)
+        {
+            string returnQuery = "";
+
+            if(firm != null)
+            {
+                //delete all working with firm
+                //foreach department and foreach employee delete all employees, than delete department, then delete firm
+                foreach(Working working in Collections.workings)
+                {
+                    if(working.FirmId == firm.Id)
+                    {
+                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(working);
+                    }
+                }
+
+                Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+                foreach(Department _department in _firm.Departments)
+                {
+                    foreach(Employee _employee in _department.Employees)
+                    {
+                        returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(employee);
+                    }
+                    returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(department);
+                }
+                returnQuery += SqlQueryBuilder.DeleteFirmBuilder(firm);
+            }
+
+            if (department != null)
+            {
+                //delete all working with department
+                //foreach employees delete all employees, than delete department
+                foreach (Working working in Collections.workings)
+                {
+                    if (working.DepartmentId == department.Id)
+                    {
+                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(working);
+                    }
+                }
+
+                Department _department = Collections.departments.Find(d => d.Id == department.Id);
+                foreach(Employee _employee in _department.Employees)
+                {
+                    returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employee);
+                }
+                returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(department);
+            }
+
+            if (employee != null)
+            {
+                //delete working with that employee
+                //delete employee
+                foreach (Working working in Collections.workings)
+                {
+                    if (working.EmployeeId == employee.JMBG)
+                    {
+                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(working);
+                    }
+                }
+
+                returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(employee);
+            }
+
+            return returnQuery;
+        }
+
+        private void CollectionsDeleteUpdater(Firm firm, Department department, Employee employee)
+        {
+            if (firm != null)
+            {
+                foreach(Working _working in Collections.workings)
+                {
+                    if(_working.FirmId == firm.Id)
+                    {
+                        Collections.employees.RemoveAll(e => e.JMBG == _working.EmployeeId);
+
+                        Department _department = Collections.departments.Find(d => d.Id == _working.DepartmentId);
+                        if(_department != null)
+                        {
+                            Collections.departments.Remove(_department);
+                        }
+
+                        Firm _firm = Collections.firms.Find(f => f.Id == _working.FirmId);
+                        if(_firm != null)
+                        {
+                            Collections.firms.Remove(_firm);
+                        }
+                    }
+                }
+
+                Collections.workings.RemoveAll(w => w.FirmId == firm.Id);
+            }
+
+            if (department != null)
+            {
+                foreach (Working _working in Collections.workings)
+                {
+                    if(_working.DepartmentId == department.Id)
+                    {
+                        Collections.employees.RemoveAll(e => e.JMBG == _working.EmployeeId);
+
+                        Department _department = Collections.departments.Find(d => d.Id == _working.DepartmentId);
+                        if (_department != null)
+                        {
+                            Collections.departments.Remove(_department);
+                        }
+                    }
+                }
+
+                Collections.workings.RemoveAll(w => w.DepartmentId == department.Id);
+            }
+
+            if (employee != null)
+            {
+                Collections.employees.Remove(employee);
+                Collections.workings.RemoveAll(w => w.EmployeeId == employee.JMBG);
+            }
+        }
+        #endregion
     }
 }
 

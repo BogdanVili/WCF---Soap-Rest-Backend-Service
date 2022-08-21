@@ -70,5 +70,29 @@ namespace WorkerServer
                    "WHERE " + $"JMBG = {employee.JMBG}" + ";\n";
         }
         #endregion
+
+        #region Delete
+        public static string DeleteFirmBuilder(Firm firm)
+        {
+            return "DELETE FROM Firm WHERE " + $"Id = {firm.Id}";
+        }
+
+        public static string DeleteDepartmentBuilder(Department department)
+        {
+            return "DELETE FROM Department WHERE " + $"Id = {department.Id}";
+        }
+
+        public static string DeleteEmployeeBuilder(Employee employee)
+        {
+            return "DELETE FROM Employee WHERE " + $"JMBG = {employee.JMBG}";
+        }
+
+        public static string DeleteWorkingBuilder(Working working)
+        {
+            return "DELETE FROM Working WHERE " + $"FirmId = {working.FirmId}, " +
+                                         $"DepartmentId = {working.DepartmentId}, " +
+                                           $"EmployeeId = {working.EmployeeId}";
+        }
+        #endregion
     }
 }
