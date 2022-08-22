@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Common.Model
 {
+    [DataContract]
     public class Department
     {
         private string name;
-
+        [DataMember(Name = "DepartmentName")]
         public string Name
         {
             get { return name; }
@@ -17,7 +19,7 @@ namespace Common.Model
         }
 
         private int id;
-
+        [DataMember(Name = "DepartmentId")]
         public int Id
         {
             get { return id; }
@@ -32,18 +34,15 @@ namespace Common.Model
             set { employees = value; }
         }
 
+        public Department()
+        {
+            Employees = new List<Employee>();
+        }
         public Department(string name, int id)
         {
             Name = name;
             Id = id;
             employees = new List<Employee>();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Department department &&
-                   Name == department.Name &&
-                   Id == department.Id;
         }
     }
 }

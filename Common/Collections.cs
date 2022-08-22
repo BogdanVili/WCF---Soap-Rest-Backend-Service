@@ -13,5 +13,10 @@ namespace Common
         public static List<Department> departments = new List<Department>();
         public static List<Employee> employees = new List<Employee>();
         public static List<Working> workings = new List<Working>();
+
+        public static int GetCurrentFirmId()
+        {
+            return firms.Max(f => f.Id) + 1;
+        }
     }
 }
