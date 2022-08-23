@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Collections.cs" />
     <Compile Include="IWorkerRequest.cs" />
+    <Compile Include="ModelRequest\DeleteParameters.cs" />
     <Compile Include="Model\Department.cs" />
     <Compile Include="Model\Employee.cs" />
     <Compile Include="Model\Firm.cs" />

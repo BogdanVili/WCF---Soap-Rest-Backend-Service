@@ -42,7 +42,7 @@ namespace WorkerServer
 
         public static string InsertWorkingBuilder(int firmId, int departmentId, long employeeId)
         {
-            return "INSERT INTO " + "Working (Id_Firm, Id_Department, Id_Employee) " + 
+            return "INSERT INTO " + "Working (FirmId, DepartmentId, EmployeeId) " + 
                    "VALUES " + $"({firmId}, " +
                                $"{departmentId}, " +
                                $"{employeeId})"+ ";\n";
@@ -74,24 +74,24 @@ namespace WorkerServer
         #region Delete
         public static string DeleteFirmBuilder(Firm firm)
         {
-            return "DELETE FROM Firm WHERE " + $"Id = {firm.Id}";
+            return "DELETE FROM Firm WHERE " + $"Id = {firm.Id};\n";
         }
 
         public static string DeleteDepartmentBuilder(Department department)
         {
-            return "DELETE FROM Department WHERE " + $"Id = {department.Id}";
+            return "DELETE FROM Department WHERE " + $"Id = {department.Id};\n";
         }
 
         public static string DeleteEmployeeBuilder(Employee employee)
         {
-            return "DELETE FROM Employee WHERE " + $"JMBG = {employee.JMBG}";
+            return "DELETE FROM Employee WHERE " + $"JMBG = {employee.JMBG};\n";
         }
 
         public static string DeleteWorkingBuilder(Working working)
         {
-            return "DELETE FROM Working WHERE " + $"FirmId = {working.FirmId}, " +
-                                         $"DepartmentId = {working.DepartmentId}, " +
-                                           $"EmployeeId = {working.EmployeeId}";
+            return "DELETE FROM Working WHERE " + $"FirmId = {working.FirmId} AND " +
+                                         $"DepartmentId = {working.DepartmentId} AND " +
+                                           $"EmployeeId = {working.EmployeeId};\n";
         }
         #endregion
     }

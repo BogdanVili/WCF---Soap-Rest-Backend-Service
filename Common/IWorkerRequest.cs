@@ -1,4 +1,5 @@
 ﻿using Common.Model;
+using Common.ModelRequest;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,7 +34,12 @@ namespace Common
         string UpdateWorkerRest(Firm firm, Department department, Employee employee);
 
         [OperationContract]
-        string DeleteWorkerRest(string message);
+        [WebInvoke(UriTemplate = "/DeleteWorkerRest",
+           Method = "POST",
+           BodyStyle = WebMessageBodyStyle.Wrapped,
+           RequestFormat = WebMessageFormat.Json,
+           ResponseFormat = WebMessageFormat.Json)]
+        string DeleteWorkerRest(DeleteParameters deleteParameters);
 
         [OperationContract]
         string AddWorkerSoap(string message);

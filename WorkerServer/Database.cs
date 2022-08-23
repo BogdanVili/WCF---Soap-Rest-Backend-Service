@@ -161,7 +161,7 @@ namespace WorkerServer
                     {
                         Console.WriteLine("Error Generated. Details: " + e.ToString());
                         connection.Close();
-                        return "Unsuccessful adding\n";
+                        return "Adding Failed\n";
                     }
                     finally
                     {
@@ -219,25 +219,39 @@ namespace WorkerServer
             if (_firm != null && _department != null)
             {
                 _department.Employees.Add(employee);
+                Collections.employees.Add(employee);
+
+                Collections.workings.Add(new Working(department.Id, employee.JMBG, firm.Id));
             }
 
             if (_firm != null && _department == null)
             {
                 _firm.Departments.Add(department);
+                Collections.departments.Add(department);
+
                 _firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
+                Collections.employees.Add(employee);
+
+                Collections.workings.Add(new Working(department.Id, employee.JMBG, firm.Id));
             }
 
             if (_firm == null)
             {
                 firm.Departments.Add(department);
+                Collections.departments.Add(department);
+
                 firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
+                Collections.employees.Add(employee);
+
                 Collections.firms.Add(firm);
+
+                Collections.workings.Add(new Working(department.Id, employee.JMBG, firm.Id));
             }
         }
         #endregion
 
         #region Update
-        public void UpdateWorker(Firm firm, Department department, Employee employee)
+        public string UpdateWorker(Firm firm, Department department, Employee employee)
         {
             string _query = UpdateQueryConstructor(firm, department, employee);
 
@@ -250,11 +264,13 @@ namespace WorkerServer
                         connection.Open();
                         SqlCommand command = new SqlCommand(_query, connection);
                         command.ExecuteNonQuery();
-                        Console.WriteLine("Updated Successfully");
+                        Console.WriteLine("Updated Successfully\n");
                     }
                     catch (SqlException e)
                     {
                         Console.WriteLine("Error Generated. Details: " + e.ToString());
+                        connection.Close();
+                        return "Updating failed\n";
                     }
                     finally
                     {
@@ -264,6 +280,8 @@ namespace WorkerServer
 
                 CollectionsUpdateUpdater(firm, department, employee);
             }
+
+            return "Updated Successfully\n";
         }
 
         private string UpdateQueryConstructor(Firm firm, Department department, Employee employee)
@@ -308,13 +326,11 @@ namespace WorkerServer
                 int _employeeIndex = Collections.employees.IndexOf(_employee);
                 Collections.employees[_employeeIndex] = employee;
             }
-
-            ConnectModelsWithWorking();
         }
         #endregion
 
         #region Delete
-        public void DeleteWorker(Firm firm, Department department, Employee employee)
+        public string DeleteWorker(Firm firm, Department department, Employee employee)
         {
             string _query = DeleteQueryConstructor(firm, department, employee);
 
@@ -327,11 +343,13 @@ namespace WorkerServer
                         connection.Open();
                         SqlCommand command = new SqlCommand(_query, connection);
                         command.ExecuteNonQuery();
-                        Console.WriteLine("Updated Successfully");
+                        Console.WriteLine("Deleted Successfully");
                     }
                     catch (SqlException e)
                     {
                         Console.WriteLine("Error Generated. Details: " + e.ToString());
+                        connection.Close();
+                        return "Deleting Failed";
                     }
                     finally
                     {
@@ -341,6 +359,8 @@ namespace WorkerServer
 
                 CollectionsDeleteUpdater(firm, department, employee);
             }
+
+            return "Deleted Successfully";
         }
 
         private string DeleteQueryConstructor(Firm firm, Department department, Employee employee)
@@ -364,9 +384,9 @@ namespace WorkerServer
                 {
                     foreach(Employee _employee in _department.Employees)
                     {
-                        returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(employee);
+                        returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employee);
                     }
-                    returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(department);
+                    returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(_department);
                 }
                 returnQuery += SqlQueryBuilder.DeleteFirmBuilder(firm);
             }
@@ -375,11 +395,11 @@ namespace WorkerServer
             {
                 //delete all working with department
                 //foreach employees delete all employees, than delete department
-                foreach (Working working in Collections.workings)
+                foreach (Working _working in Collections.workings)
                 {
-                    if (working.DepartmentId == department.Id)
+                    if (_working.DepartmentId == department.Id)
                     {
-                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(working);
+                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(_working);
                     }
                 }
 

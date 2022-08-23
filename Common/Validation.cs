@@ -45,5 +45,14 @@ namespace Common
 
             return false;
         }
+
+        public static bool ExistsInWorkings(Firm firm, Department department, Employee employee)
+        {
+            if (Collections.firms.Any(f => f.Id == firm.Id) &&
+               Collections.departments.Any(d => d.Id == department.Id) &&
+               Collections.employees.Any(e => e.JMBG == employee.JMBG))
+                return true;
+            return false;
+        }
     }
 }

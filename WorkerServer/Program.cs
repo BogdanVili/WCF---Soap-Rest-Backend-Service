@@ -16,6 +16,7 @@ namespace WorkerServer
         {
             Database database = Database.GetInstance();        
             database.ReadModels();
+
             WebServiceHost webServiceHost = new WebServiceHost(typeof(WorkerService));
             webServiceHost.AddServiceEndpoint(typeof(IWorkerRequest), new WebHttpBinding(), new Uri("http://localhost:8000/"));
             webServiceHost.Open();
