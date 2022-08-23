@@ -80,5 +80,20 @@ namespace Common.Model
             DeservesRaise = deservesRaise;
             Email = email;
         }
+
+        public bool Empty()
+        {
+            if (FirstName == "" || FirstName == null)
+                return true;
+            if (LastName == "" || LastName == null)
+                return true;
+            if (DateOfBirthString == "" || DateOfBirthString == null)
+                return true;
+            if (JMBG <= 0)
+                return true;
+            if (Email == "" || Email == null)
+                return true;
+            return false;
+        }
     }
 }

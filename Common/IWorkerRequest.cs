@@ -25,7 +25,12 @@ namespace Common
         string AddWorkerRest(Firm firm, Department department, Employee employee);
 
         [OperationContract]
-        string UpdateWorkerRest(string message);
+        [WebInvoke(UriTemplate = "/UpdateWorkerRest",
+           Method = "POST",
+           BodyStyle = WebMessageBodyStyle.Wrapped,
+           RequestFormat = WebMessageFormat.Json,
+           ResponseFormat = WebMessageFormat.Json)]
+        string UpdateWorkerRest(Firm firm, Department department, Employee employee);
 
         [OperationContract]
         string DeleteWorkerRest(string message);

@@ -44,5 +44,14 @@ namespace Common.Model
             Id = id;
             employees = new List<Employee>();
         }
+
+        public bool Empty()
+        {
+            if (Name == "" || Name == null)
+                return true;
+            if (Id <= 0)
+                return true;
+            return false;
+        }
     }
 }

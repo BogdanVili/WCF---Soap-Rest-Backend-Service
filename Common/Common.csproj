@@ -51,6 +51,7 @@
     <Compile Include="Model\Firm.cs" />
     <Compile Include="Model\Working.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Validation.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

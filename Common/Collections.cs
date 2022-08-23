@@ -14,9 +14,18 @@ namespace Common
         public static List<Employee> employees = new List<Employee>();
         public static List<Working> workings = new List<Working>();
 
-        public static int GetCurrentFirmId()
+        public static int GetCurrentFirmId(string firmName)
         {
+            if(firms.Count == 0)
+                return 1;
+
+            Firm _firm = firms.Find(f => f.Name == firmName);
+            if (_firm != null)
+                return _firm.Id;
+
             return firms.Max(f => f.Id) + 1;
         }
+
+
     }
 }

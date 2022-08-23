@@ -142,7 +142,7 @@ namespace WorkerServer
         #endregion
 
         #region Add
-        public void AddWorker(Firm firm, Department department, Employee employee)
+        public string AddWorker(Firm firm, Department department, Employee employee)
         {
             string _query = AddQueryConstructor(firm, department, employee);
 
@@ -155,11 +155,13 @@ namespace WorkerServer
                         connection.Open();
                         SqlCommand command = new SqlCommand(_query, connection);
                         command.ExecuteNonQuery();
-                        Console.WriteLine("Inserted Successfully");
+                        Console.WriteLine($"Inserted Firm - {firm.Id}; Department - {department.Id}; Employee - {employee.JMBG}\n");
                     }
                     catch (SqlException e)
                     {
                         Console.WriteLine("Error Generated. Details: " + e.ToString());
+                        connection.Close();
+                        return "Unsuccessful adding\n";
                     }
                     finally
                     {
@@ -169,6 +171,8 @@ namespace WorkerServer
 
                 CollectionsAddUpdater(firm, department, employee);
             }
+
+            return "Added Successfully\n";
         }
 
         private string AddQueryConstructor(Firm firm, Department department, Employee employee)

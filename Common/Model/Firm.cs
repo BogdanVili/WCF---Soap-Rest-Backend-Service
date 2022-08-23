@@ -19,7 +19,7 @@ namespace Common.Model
         }
 
         private int id;
-
+        [DataMember(Name = "FirmId")]
         public int Id
         {
             get { return id; }
@@ -42,7 +42,14 @@ namespace Common.Model
         {
             Name = name;
             Id = id;
-            departments = new List<Department>();
+            Departments = new List<Department>();
+        }
+
+        public bool Empty()
+        {
+            if (Name == "" || Name == null)
+                return true;
+            return false;
         }
     }
 }
