@@ -1,4 +1,5 @@
 ﻿using Common.Model;
+using Common.ModelCSV;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace WorkerServer
                                                $"LastName = \'{employee.LastName}\', " +
                                             $"DateOfBirth = \'{employee.DateOfBirth.ToString("yyyyMMdd")}\', " +
                                             $"DeservesRaise = {Convert.ToInt32(employee.DeservesRaise)}, " +
-                                                  $"Email = \'{employee.Email}\'" +
+                                                  $"Email = \'{employee.Email}\' " +
                    "WHERE " + $"JMBG = {employee.JMBG}" + ";\n";
         }
         #endregion
@@ -92,6 +93,15 @@ namespace WorkerServer
             return "DELETE FROM Working WHERE " + $"FirmId = {working.FirmId} AND " +
                                          $"DepartmentId = {working.DepartmentId} AND " +
                                            $"EmployeeId = {working.EmployeeId};\n";
+        }
+        #endregion
+
+        #region UpdateEmployeeData
+        public static string UpdateEmployeeDataBuilder(EmployeeUpdateData employeeUpdateData)
+        {
+            return "UPDATE Employee SET " + $"DeservesRaise = {Convert.ToInt32(employeeUpdateData.DeservesRaise)}, " +
+                                            $"Email = \'{employeeUpdateData.Email}\' " +
+                   "WHERE " + $"JMBG = {employeeUpdateData.JMBG}" + ";\n";
         }
         #endregion
     }

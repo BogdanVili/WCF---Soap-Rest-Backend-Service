@@ -1,5 +1,6 @@
 ﻿using Common;
 using Common.Model;
+using Common.ModelCSV;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -482,6 +483,60 @@ namespace WorkerServer
             }
         }
         #endregion
+
+        #region UpdateEmployeeData
+        public void UpdateEmployeeData(EmployeeUpdateData employeeUpdateData)
+        {
+            string _query = UpdateEmployeeDataQueryConstructor(employeeUpdateData);
+
+            if (_query != "")
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    try
+                    {
+                        connection.Open();
+                        SqlCommand command = new SqlCommand(_query, connection);
+                        command.ExecuteNonQuery();
+                    }
+                    catch (SqlException e)
+                    {
+                        Console.WriteLine("Error Generated. Details: " + e.ToString());
+                        connection.Close();
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                }
+
+                CollectionsUpdateEmployeeDataUpdater(employeeUpdateData);
+            }
+        }
+
+        private string UpdateEmployeeDataQueryConstructor(EmployeeUpdateData employeeUpdateData)
+        {
+            string returnQuery = "";
+
+            if (Collections.employees.Any(e => e.JMBG == employeeUpdateData.JMBG))
+            {
+                returnQuery += SqlQueryBuilder.UpdateEmployeeDataBuilder(employeeUpdateData);
+            }
+
+            return returnQuery;
+        }
+
+        private void CollectionsUpdateEmployeeDataUpdater(EmployeeUpdateData employeeUpdateData)
+        {
+            if (Collections.employees.Any(e => e.JMBG == employeeUpdateData.JMBG))
+            {
+                Employee _employee = Collections.employees.Find(e => e.JMBG == employeeUpdateData.JMBG);
+                int _employeeIndex = Collections.employees.IndexOf(_employee);
+                Collections.employees[_employeeIndex].DeservesRaise = employeeUpdateData.DeservesRaise;
+                Collections.employees[_employeeIndex].Email = employeeUpdateData.Email;
+            }
+        }
+    #endregion
     }
 }
 
