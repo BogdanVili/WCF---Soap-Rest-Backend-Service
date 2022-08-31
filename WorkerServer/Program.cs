@@ -17,11 +17,15 @@ namespace WorkerServer
             Database database = Database.GetInstance();        
             database.ReadModels();
 
-            WebServiceHost webServiceHost = new WebServiceHost(typeof(WorkerService));
-            webServiceHost.AddServiceEndpoint(typeof(IWorkerRequest), new WebHttpBinding(), new Uri("http://localhost:8000/"));
-            webServiceHost.Open();
+            //WebServiceHost webServiceHost = new WebServiceHost(typeof(WorkerService));
+            //webServiceHost.AddServiceEndpoint(typeof(IWorkerRequest), new WebHttpBinding(), new Uri("http://localhost:8000/"));
+            //webServiceHost.Open();
+            //Console.ReadKey();
+            //webServiceHost.Close();
+            //webServiceHost.Close();
+
             Console.ReadKey();
-            webServiceHost.Close();
+
         }
     }
 }

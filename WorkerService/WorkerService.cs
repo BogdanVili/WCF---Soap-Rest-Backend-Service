@@ -3,17 +3,19 @@ using Common.Model;
 using Common.ModelRequest;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.ServiceModel;
 using System.Text;
-using System.Threading.Tasks;
+using WorkerServer;
 
-namespace WorkerServer
+namespace WorkerService
 {
-    public class WorkerService : IWorkerRequest
+    public class WorkerService : IWorkerServiceRest, IWorkerServiceSoap
     {
         Database database = Database.GetInstance();
 
+        #region REST
         public string AddWorkerRest(Firm firm, Department department, Employee employee)
         {
             firm.Departments = new List<Department>();
@@ -29,10 +31,7 @@ namespace WorkerServer
             return database.AddWorker(firm, department, employee);
         }
 
-        public string AddWorkerSoap(string message)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public string DeleteWorkerRest(DeleteParameters deleteParameters)
         {
@@ -42,8 +41,8 @@ namespace WorkerServer
                 if (!Collections.firms.Any(f => f.Name == _firmName))
                     return "Firm with that Name doesnt exist";
 
-                return database.DeleteWorker(Collections.firms.Find(f => f.Name == _firmName), 
-                                             null, 
+                return database.DeleteWorker(Collections.firms.Find(f => f.Name == _firmName),
+                                             null,
                                              null);
             }
 
@@ -51,18 +50,18 @@ namespace WorkerServer
             if (_departmentId > 0)
             {
 
-                if(!Collections.departments.Any(d => d.Id == _departmentId))
+                if (!Collections.departments.Any(d => d.Id == _departmentId))
                     return "Department with that Name doesnt exist";
 
-                return database.DeleteWorker(null, 
-                                             Collections.departments.Find(d => d.Id == _departmentId), 
+                return database.DeleteWorker(null,
+                                             Collections.departments.Find(d => d.Id == _departmentId),
                                              null);
             }
 
             long _employeeJMBG = deleteParameters.EmployeeJMBG;
             if (_employeeJMBG > 0)
             {
-                if(!Collections.employees.Any(e => e.JMBG == _employeeJMBG))
+                if (!Collections.employees.Any(e => e.JMBG == _employeeJMBG))
                     return "Employee with that Name doesnt exist";
 
                 return database.DeleteWorker(null,
@@ -73,10 +72,6 @@ namespace WorkerServer
             return "Deleting Failed, Need to send Id.\n";
         }
 
-        public string DeleteWorkerSoap(string message)
-        {
-            throw new NotImplementedException();
-        }
 
         public string UpdateWorkerRest(Firm firm, Department department, Employee employee)
         {
@@ -91,10 +86,23 @@ namespace WorkerServer
 
             return database.UpdateWorker(firm, department, employee);
         }
+        #endregion
 
-        public string UpdateWorkerSoap(string message)
+        #region SOAP
+        public string AddWorkerSoap(Firm firm, Department department, Employee employee)
         {
             throw new NotImplementedException();
         }
+
+        public string UpdateWorkerSoap(Firm firm, Department department, Employee employee)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string DeleteWorkerSoap(DeleteParameters deleteParameters)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

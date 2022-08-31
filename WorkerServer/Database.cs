@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace WorkerServer
 {
-    class Database
+    public class Database
     {
         private static Database databaseInstance;
         string connectionString = "Data Source = DESKTOP-2TUI0SB\\SQLEXPRESS; Initial Catalog = Schneider_Zadatak_1; Integrated Security = True";
