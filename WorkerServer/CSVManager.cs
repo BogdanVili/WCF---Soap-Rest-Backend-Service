@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 
@@ -15,20 +16,47 @@ namespace WorkerServer
         private static List<EmployeeUpdateData> employeeUpdateDatas = new List<EmployeeUpdateData>();
         public static string FileName;
 
+        private Thread threadCSVManager;
+
         public CSVManager(string fileName)
         {
             FileName = fileName;
+            threadCSVManager = new Thread(() => StartThread());
+            threadCSVManager.Name = "CSVManager";
+            threadCSVManager.Start();
         }
 
-        public void ReadData()
+        private static void StartThread()
         {
-            string path = HostingEnvironment.MapPath(FileName);
-            FileStream stream = new FileStream(path, FileMode.Open);
-            StreamReader sr = new StreamReader(stream);
+            while (true)
+            {
+                ReadData();
+                Thread.Sleep(2000);
+            }
+        }
+
+        public void StopThread()
+        {
+            threadCSVManager.Abort();
+        }
+
+        private static void ReadData()
+        {
+            string path = Path.GetFullPath("../../Data/" + FileName);
+            FileInfo fileInfo = new FileInfo(path);
+            if(IsFileInUse(fileInfo))
+            {
+                return;
+            }
+
+            StreamReader streamReader = new StreamReader(path);
             string _line = "";
 
-            while ((_line = sr.ReadLine()) != null)
+            while ((_line = streamReader.ReadLine()) != null)
             {
+                if (_line == "")
+                    continue;
+
                 string[] _fields = _line.Split(',');
 
                 long _jmbg = long.Parse(_fields[0]);
@@ -51,16 +79,24 @@ namespace WorkerServer
                 employeeUpdateDatas.Add(new EmployeeUpdateData(_jmbg, _deservesRaise, _email));
                 database.UpdateEmployeeData(_employeeUpdateData);
             }
+
+            streamReader.Close();
         }
 
-        public void UpdateEmployeeDatabase(EmployeeUpdateData employeeUpdateData)
+        private static bool IsFileInUse(FileInfo file)
         {
-
-        }
-
-        public void UpdateEmployeeCollection(EmployeeUpdateData employeeUpdateData)
-        {
-
+            try
+            {
+                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    stream.Close();
+                }
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

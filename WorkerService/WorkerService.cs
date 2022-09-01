@@ -13,7 +13,14 @@ namespace WorkerService
 {
     public class WorkerService : IWorkerServiceRest, IWorkerServiceSoap
     {
-        Database database = Database.GetInstance();
+        public static Database database = Database.GetInstance();
+
+        static WorkerService()
+        {
+            database.ReadModels();
+
+            CSVManager csvManager = new CSVManager("employee.csv");
+        }
 
         #region REST
         public string AddWorkerRest(Firm firm, Department department, Employee employee)

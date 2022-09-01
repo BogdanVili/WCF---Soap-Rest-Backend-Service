@@ -18,16 +18,8 @@ namespace WorkerServer
             database.ReadModels();
 
             CSVManager csvManager = new CSVManager("employee.csv");
-            csvManager.ReadData();
-
-            //WebServiceHost webServiceHost = new WebServiceHost(typeof(WorkerService));
-            //webServiceHost.AddServiceEndpoint(typeof(IWorkerRequest), new WebHttpBinding(), new Uri("http://localhost:8000/"));
-            //webServiceHost.Open();
-            //Console.ReadKey();
-            //webServiceHost.Close();
 
             Console.ReadKey();
-
         }
     }
 }

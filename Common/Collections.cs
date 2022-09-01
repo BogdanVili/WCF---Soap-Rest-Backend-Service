@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Common
 {
-    public class Collections
+    public static class Collections
     {
         public static List<Firm> firms = new List<Firm>();
         public static List<Department> departments = new List<Department>();
@@ -25,7 +25,5 @@ namespace Common
 
             return firms.Max(f => f.Id) + 1;
         }
-
-
     }
 }
