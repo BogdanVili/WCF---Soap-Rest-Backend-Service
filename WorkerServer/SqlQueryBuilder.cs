@@ -15,6 +15,10 @@ namespace WorkerServer
         {
             return $"SELECT * FROM {obj};\n";
         }
+        public static string SelectFirmIdBuilder(string firmName)
+        {
+            return $"SELECT TOP (1000) [Id] FROM [Schneider_Zadatak_1].[dbo].[Firm] WHERE Name = \'{firmName}\';\n";
+        }
         #endregion
 
         #region Insert
@@ -23,7 +27,6 @@ namespace WorkerServer
             return "INSERT INTO " + "Firm (Name) " +
                    "VALUES " + $"(\'{firm.Name}\')" + ";\n";
         }
-
         public static string InsertDepartmentBuilder(Department department)
         {
             return "INSERT INTO " + "Department (Id, Name) " +
@@ -40,7 +43,6 @@ namespace WorkerServer
                                   $"{Convert.ToInt32(employee.DeservesRaise)}, " +
                                 $"\'{employee.Email}\')" + ";\n";
         }
-
         public static string InsertWorkingBuilder(int firmId, int departmentId, long employeeId)
         {
             return "INSERT INTO " + "Working (FirmId, DepartmentId, EmployeeId) " + 
@@ -53,12 +55,12 @@ namespace WorkerServer
         #region Update
         public static string UpdateFirmBuilder(Firm firm)
         {
-            return "UPDATE FIRM SET " + $"Name = \'{firm.Name}\' " + "WHERE " + $"Id = {firm.Id}";
+            return "UPDATE FIRM SET " + $"Name = \'{firm.Name}\' " + "WHERE " + $"Id = {firm.Id};\n";
         }
 
         public static string UpdateDepartmentBuilder(Department department)
         { 
-            return "UPDATE Department SET " + $"Name = \'{department.Name}\' " + "WHERE " + $"Id = {department.Id}";
+            return "UPDATE Department SET " + $"Name = \'{department.Name}\' " + "WHERE " + $"Id = {department.Id};\n";
         }
 
         public static string UpdateEmployeeBuilder(Employee employee)

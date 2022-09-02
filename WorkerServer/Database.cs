@@ -43,6 +43,30 @@ namespace WorkerServer
             }
         }
 
+        private bool executeNonQuery(string _query)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                    connection.Close();
+                    return false;
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return true;
+        }
 
         #region Read
 
@@ -155,26 +179,20 @@ namespace WorkerServer
                 return "Adding Failed\n";
             }
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            bool _successfulExecution = executeNonQuery(_query);
+
+            if (_successfulExecution)
             {
-                try
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    command.ExecuteNonQuery();
-                    Console.WriteLine($"Inserted Firm - {firm.Id}; Department - {department.Id}; Employee - {employee.JMBG}\n");
-                }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                    connection.Close();
-                    return "Adding Failed\n";
-                }
-                finally
-                {
-                    connection.Close();
-                }
+                Console.WriteLine($"Inserted Firm - {firm.Id}; Department - {department.Id}; Employee - {employee.JMBG}\n");
             }
+            else
+            {
+                return "Adding Failed\n";
+            }
+
+            UpdateFirmId(firm);
+
+            AddWorking(firm.Id, department.Id, employee.JMBG);
 
             CollectionsAddUpdater(firm, department, employee);
 
@@ -205,8 +223,6 @@ namespace WorkerServer
                 returnQuery += SqlQueryBuilder.InsertDepartmentBuilder(department);
                 returnQuery += SqlQueryBuilder.InsertFirmBuilder(firm);
             }
-
-            returnQuery += SqlQueryBuilder.InsertWorkingBuilder(firm.Id, department.Id, employee.JMBG);
 
             return returnQuery;
         }
@@ -255,6 +271,61 @@ namespace WorkerServer
             }
         }
 
+        private void UpdateFirmId(Firm firm)
+        {
+            string _query = SqlQueryBuilder.SelectFirmIdBuilder(firm.Name);
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+                    DataTable schemaTable = reader.GetSchemaTable();
+
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            firm.Id = (int)reader.GetValue(0);
+                        }
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+        }
+
+        private void AddWorking(int firmId, int departmentId, long employeeId)
+        {
+            string _query = SqlQueryBuilder.InsertWorkingBuilder(firmId, departmentId, employeeId);
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                    connection.Close();
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+        }
         #endregion
 
         #region Update
@@ -268,25 +339,16 @@ namespace WorkerServer
                 return "Updating failed\n";
             }
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            bool _successfulExecution = executeNonQuery(_query);
+
+            if (_successfulExecution)
             {
-                try
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    command.ExecuteNonQuery();
-                    Console.WriteLine("Updated Successfully\n");
-                }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                    connection.Close();
-                    return "Updating failed\n";
-                }
-                finally
-                {
-                    connection.Close();
-                }
+                Console.WriteLine("Updated Successfully\n");
+
+            }
+            else
+            {
+                return "Updating failed\n";
             }
 
             CollectionsUpdateUpdater(firm, department, employee);
@@ -316,17 +378,19 @@ namespace WorkerServer
 
         private void CollectionsUpdateUpdater(Firm firm, Department department, Employee employee)
         {
-            if(!Collections.firms.Contains(firm))
-            {
-                Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
-                int _firmIndex = Collections.firms.IndexOf(_firm);
-                Collections.firms[_firmIndex] = firm;
-            }
+            //if(!Collections.firms.Contains(firm))
+            //{
+            //    Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+            //    int _firmIndex = Collections.firms.IndexOf(_firm);
+            //    firm.Departments = _firm.Departments;
+            //    Collections.firms[_firmIndex] = firm;
+            //}
 
             if (!Collections.departments.Contains(department))
             {
                 Department _department = Collections.departments.Find(d => d.Id == department.Id);
                 int _departmentIndex = Collections.departments.IndexOf(_department);
+                department.Employees = _department.Employees;
                 Collections.departments[_departmentIndex] = department;
             }
 
@@ -346,30 +410,20 @@ namespace WorkerServer
         {
             string _query = DeleteQueryConstructor(firm, department, employee);
 
-            if (_query != "")
+            if (_query == "")
             {
                 return "Deleting Failed\n";
             }
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            bool _successfulExecution = executeNonQuery(_query);
+
+            if (_successfulExecution)
             {
-                try
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    command.ExecuteNonQuery();
-                    Console.WriteLine("Deleted Successfully\n");
-                }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                    connection.Close();
-                    return "Deleting Failed\n";
-                }
-                finally
-                {
-                    connection.Close();
-                }
+                Console.WriteLine("Deleted Successfully\n");
+            }
+            else
+            {
+                return "Deleting Failed\n";
             }
 
             CollectionsDeleteUpdater(firm, department, employee);
@@ -503,24 +557,7 @@ namespace WorkerServer
                 return;
             }
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    command.ExecuteNonQuery();
-                }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                    connection.Close();
-                }
-                finally
-                {
-                    connection.Close();
-                }
-            }
+            executeNonQuery(_query);
 
             CollectionsUpdateEmployeeDataUpdater(employeeUpdateData);
         }
