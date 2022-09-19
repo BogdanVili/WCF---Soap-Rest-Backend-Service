@@ -1,15 +1,18 @@
-﻿using System;
+﻿using Common.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common.Model
+namespace Common.ModelRequest
 {
-    public class Employee
+    [DataContract]
+    public class EmployeeRequest
     {
         private string firstName;
+        [DataMember(Name = "FirstName")]
         public string FirstName
         {
             get { return firstName; }
@@ -17,20 +20,23 @@ namespace Common.Model
         }
 
         private string lastName;
+        [DataMember(Name = "LastName")]
         public string LastName
         {
             get { return lastName; }
             set { lastName = value; }
         }
 
-        private DateTime dateOfBirth;
-        public DateTime DateOfBirth
+        private string dateOfBirthString;
+        [DataMember(Name = "DateOfBirth")]
+        public string DateOfBirthString
         {
-            get { return dateOfBirth; }
-            set { dateOfBirth = value; }
+            get { return dateOfBirthString; }
+            set { dateOfBirthString = value; }
         }
 
         private long jmbg;
+        [DataMember(Name = "JMBG")]
         public long JMBG
         {
             get { return jmbg; }
@@ -38,6 +44,7 @@ namespace Common.Model
         }
 
         private bool deservesRaise;
+        [DataMember(Name = "DeservesRaise")]
         public bool DeservesRaise
         {
             get { return deservesRaise; }
@@ -45,38 +52,36 @@ namespace Common.Model
         }
 
         private string email;
+        [DataMember(Name = "Email")]
         public string Email
         {
             get { return email; }
             set { email = value; }
         }
 
-        public Employee() 
+        public EmployeeRequest()
         {
-            
+
         }
 
-        public Employee(string firstName, string lastName, DateTime dateOfBirth, long jMBG, bool deservesRaise, string email)
+        public EmployeeRequest(string firstName, string lastName, string dateOfBirthString, long jMBG, bool deservesRaise, string email)
         {
             FirstName = firstName;
             LastName = lastName;
-            DateOfBirth = dateOfBirth;
+            DateOfBirthString = dateOfBirthString;
             JMBG = jMBG;
             DeservesRaise = deservesRaise;
             Email = email;
         }
 
-        public bool Empty()
+        public Employee ConvertModelRequestToModel()
         {
-            if (FirstName == "" || FirstName == null)
-                return true;
-            if (LastName == "" || LastName == null)
-                return true;
-            if (JMBG <= 0)
-                return true;
-            if (Email == "" || Email == null)
-                return true;
-            return false;
+            return new Employee(this.FirstName,
+                                this.LastName,
+                                DateTime.ParseExact(this.DateOfBirthString, "yyyy-MM-dd", null),
+                                this.JMBG,
+                                this.DeservesRaise,
+                                this.Email);
         }
     }
 }

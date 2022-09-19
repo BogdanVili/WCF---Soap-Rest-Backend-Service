@@ -35,5 +35,13 @@ namespace Common.ModelCSV
             DeservesRaise = deservesRaise;
             Email = email;
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is EmployeeUpdateData data &&
+                   JMBG == data.JMBG &&
+                   DeservesRaise == data.DeservesRaise &&
+                   Email == data.Email;
+        }
     }
 }

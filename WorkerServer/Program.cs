@@ -6,6 +6,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WorkerServer
@@ -18,6 +19,9 @@ namespace WorkerServer
             database.ReadModels();
 
             CSVManager csvManager = new CSVManager("employee.csv");
+            Thread threadCSVManager = new Thread(() => CSVManager.StartThread());
+            threadCSVManager.Name = "CSVManager";
+            threadCSVManager.Start();
 
             Console.ReadKey();
         }

@@ -1,12 +1,14 @@
 ﻿using Common.ModelCSV;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Hosting;
+using System.Windows;
 
 namespace WorkerServer
 {
@@ -16,33 +18,24 @@ namespace WorkerServer
         private static List<EmployeeUpdateData> employeeUpdateDatas = new List<EmployeeUpdateData>();
         public static string FileName;
 
-        private Thread threadCSVManager;
-
         public CSVManager(string fileName)
         {
             FileName = fileName;
-            threadCSVManager = new Thread(() => StartThread());
-            threadCSVManager.Name = "CSVManager";
-            threadCSVManager.Start();
         }
 
-        private static void StartThread()
+        public static void StartThread()
         {
             while (true)
             {
                 ReadData();
                 Thread.Sleep(2000);
+                //Timer timer = new Timer();
             }
-        }
-
-        public void StopThread()
-        {
-            threadCSVManager.Abort();
         }
 
         private static void ReadData()
         {
-            string path = Path.GetFullPath("../../Data/" + FileName);
+            string path = Path.GetFullPath("../../../WorkerServer/Data/" + FileName);
             FileInfo fileInfo = new FileInfo(path);
             if(IsFileInUse(fileInfo))
             {

@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 
 namespace Common.Model
 {
-    [DataContract]
     public class Firm
     {
         private string name;
-        [DataMember(Name = "FirmName")]
         public string Name
         {
             get { return name; }
@@ -19,7 +17,6 @@ namespace Common.Model
         }
 
         private int id;
-        [DataMember(Name = "FirmId")]
         public int Id
         {
             get { return id; }

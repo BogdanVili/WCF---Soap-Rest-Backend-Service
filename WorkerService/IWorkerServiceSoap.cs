@@ -11,9 +11,9 @@ using System.Text;
 namespace WorkerService
 {
     [ServiceContract]
-    [ServiceKnownType(typeof(Firm))]
-    [ServiceKnownType(typeof(Department))]
-    [ServiceKnownType(typeof(Employee))]
+    [ServiceKnownType(typeof(FirmRequest))]
+    [ServiceKnownType(typeof(DepartmentRequest))]
+    [ServiceKnownType(typeof(EmployeeRequest))]
     public interface IWorkerServiceSoap
     {
         [OperationContract]
@@ -22,7 +22,7 @@ namespace WorkerService
            BodyStyle = WebMessageBodyStyle.Wrapped,
            RequestFormat = WebMessageFormat.Xml,
            ResponseFormat = WebMessageFormat.Xml)]
-        string AddWorkerSoap(Firm firm, Department department, Employee employee);
+        string AddWorkerSoap(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/UpdateWorkerSoap",
@@ -30,7 +30,7 @@ namespace WorkerService
            BodyStyle = WebMessageBodyStyle.Wrapped,
            RequestFormat = WebMessageFormat.Xml,
            ResponseFormat = WebMessageFormat.Xml)]
-        string UpdateWorkerSoap(Firm firm, Department department, Employee employee);
+        string UpdateWorkerSoap(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/DeleteWorkerSoap",

@@ -11,9 +11,9 @@ using System.Text;
 namespace WorkerService
 {
     [ServiceContract]
-    [ServiceKnownType(typeof(Firm))]
-    [ServiceKnownType(typeof(Department))]
-    [ServiceKnownType(typeof(Employee))]
+    [ServiceKnownType(typeof(FirmRequest))]
+    [ServiceKnownType(typeof(DepartmentRequest))]
+    [ServiceKnownType(typeof(EmployeeRequest))]
     public interface IWorkerServiceRest
     {
         [OperationContract]
@@ -22,7 +22,7 @@ namespace WorkerService
                    BodyStyle = WebMessageBodyStyle.Wrapped,
                    RequestFormat = WebMessageFormat.Json,
                    ResponseFormat = WebMessageFormat.Json)]
-        string AddWorkerRest(Firm firm, Department department, Employee employee);
+        string AddWorkerRest(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/UpdateWorkerRest",
@@ -30,7 +30,7 @@ namespace WorkerService
            BodyStyle = WebMessageBodyStyle.Wrapped,
            RequestFormat = WebMessageFormat.Json,
            ResponseFormat = WebMessageFormat.Json)]
-        string UpdateWorkerRest(Firm firm, Department department, Employee employee);
+        string UpdateWorkerRest(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/DeleteWorkerRest",

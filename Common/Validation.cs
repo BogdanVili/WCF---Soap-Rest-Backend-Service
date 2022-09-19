@@ -21,7 +21,7 @@ namespace Common
 
         public static bool FirmContainsDepartmentName(Firm firm, Department department)
         {
-            Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+            Firm _firm = Collections.firms.Find(f => f.Name == firm.Name);
 
             if (_firm == null)
                 return false;
