@@ -18,9 +18,68 @@ namespace WorkerServer
         public static string SelectFirmIdBuilder(string firmName)
         {
             return String.Format("SELECT Id " +
-                "                 FROM Firm " +
-                "                 WHERE Name = \'{0}\';\n", 
+                                 "FROM Firm " +
+                                 "WHERE Name = \'{0}\';\n", 
                                   firmName);
+        }
+
+        public static string SelectFirmById(int firmId)
+        {
+            return String.Format("SELECT * " +
+                                 "FROM Firm " +
+                                 "WHERE Firm.Id = {0};\n",
+                                  firmId);
+        }
+
+        public static string SelectDepartmentById(int departmentId)
+        {
+            return String.Format("SELECT * " +
+                                 "FROM Department " +
+                                 "WHERE Department.Id = {0};\n",
+                                  departmentId);
+        }
+
+        public static string SelectEmployeeById(long employeeId)
+        {
+            return String.Format("SELECT * " +
+                                 "FROM Employee " +
+                                 "WHERE Employee.JMBG = {0};\n",
+                                  employeeId);
+        }
+        #endregion
+
+        #region Exists
+        public static string FirmExists(string firmName)
+        {
+            return String.Format("EXEC FirmExists \'{0}\'",
+                                  firmName);
+        }
+
+        public static string DepartmentExists(int departmentId)
+        {
+            return String.Format("EXEC DepartmentExists {0}",
+                                  departmentId);
+        }
+
+        public static string EmployeeExists(long employeeJMBG)
+        {
+            return String.Format("EXEC EmployeeExists {0}",
+                                  employeeJMBG);
+        }
+
+        public static string DepartmentNameExistsInFirm(string firmName, string departmentName)
+        {
+            return String.Format("EXEC DepartmentNameExistsInFirm \'{0}\', \'{1}\'",
+                                  firmName,
+                                  departmentName);
+        }
+
+        public static string WorkingExists(int firmId, int departmentId, long employeeId)
+        {
+            return String.Format("EXEC WorkingExists {0}, {1}, {2}",
+                                  firmId,
+                                  departmentId,
+                                  employeeId);
         }
         #endregion
 
@@ -28,20 +87,20 @@ namespace WorkerServer
         public static string InsertFirmBuilder(Firm firm)
         {
             return String.Format("INSERT INTO Firm (Name) " +
-                "                 VALUES (\'{0}\');\n", 
+                                 "VALUES (\'{0}\');\n", 
                                   firm.Name);
         }
         public static string InsertDepartmentBuilder(Department department)
         {
             return String.Format("INSERT INTO Department (Id, Name) " +
-                "                 VALUES {0}, \'{1}\';\n", 
+                                 "VALUES ({0}, \'{1}\');\n", 
                                   department.Id, 
                                   department.Name);
         }
         public static string InsertEmployeeBuilder(Employee employee)
         {
             return String.Format("INSERT INTO Employee (FirstName, LastName, DateOfBirth, JMBG, DeservesRaise, Email) " +
-                "                 VALUES \'{0}\', \'{1}\', \'{2}\', {3}, {4},\'{5}\';\n",
+                                 "VALUES (\'{0}\', \'{1}\', \'{2}\', {3}, {4},\'{5}\');\n",
                                   employee.FirstName,
                                   employee.LastName,
                                   employee.DateOfBirth.ToString("yyyyMMdd"),
@@ -51,8 +110,8 @@ namespace WorkerServer
         }
         public static string InsertWorkingBuilder(int firmId, int departmentId, long employeeId)
         {
-            return String.Format("INSERT INTO Working (FirmId, DepartmentId, EmployeeId)" +
-                                 "VALUES {0}, {1}, {2};\n",
+            return String.Format("INSERT INTO Working (FirmId, DepartmentId, EmployeeId) " +
+                                 "VALUES ({0}, {1}, {2});\n",
                                   firmId,
                                   departmentId,
                                   employeeId);
@@ -134,5 +193,7 @@ namespace WorkerServer
                                   employeeUpdateData.JMBG);
         }
         #endregion
+
+
     }
 }

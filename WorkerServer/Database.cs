@@ -14,11 +14,14 @@ namespace WorkerServer
     public class Database
     {
         private static Database databaseInstance;
-        string connectionString = "Data Source = DESKTOP-2TUI0SB\\SQLEXPRESS; Initial Catalog = Schneider_Zadatak_1; Integrated Security = True";
+        public string connectionString = "Data Source = DESKTOP-2TUI0SB\\SQLEXPRESS; Initial Catalog = Schneider_Zadatak_1; Integrated Security = True";
+        public Validation validation;
 
         private Database()
         {
             Connect();
+            ReadModels();
+            validation = new Validation(this);
         }
 
         public static Database GetInstance()
@@ -68,6 +71,8 @@ namespace WorkerServer
             return true;
         }
 
+        
+
         #region Read
 
         public void ReadModels()
@@ -95,7 +100,7 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
                     DataTable schemaTable = reader.GetSchemaTable();
-
+                    
                     if (reader.HasRows)
                     {
                         while (reader.Read())
@@ -103,25 +108,25 @@ namespace WorkerServer
                             switch (tableName)
                             {
                                 case "Working":
-                                    Collections.workings.Add(new Working((int)reader.GetValue(0),
-                                                                         (long)reader.GetValue(1),
-                                                                         (int)reader.GetValue(2)));
+                                    Collections.workings.Add(new Working((int)reader["DepartmentId"],
+                                                                         (long)reader["EmployeeId"],
+                                                                         (int)reader["FirmId"]));
                                     break;
                                 case "Firm":
-                                    Collections.firms.Add(new Firm(reader.GetValue(0).ToString().Trim(),
-                                                                   (int)reader.GetValue(1)));
+                                    Collections.firms.Add(new Firm(reader["Name"].ToString().Trim(),
+                                                                   (int)reader["Id"]));
                                     break;
                                 case "Department":
-                                    Collections.departments.Add(new Department(reader.GetValue(0).ToString().Trim(),
-                                                                               (int)reader.GetValue(1)));
+                                    Collections.departments.Add(new Department(reader["Name"].ToString().Trim(),
+                                                                               (int)reader["Id"]));
                                     break;
                                 case "Employee":
-                                    Collections.employees.Add(new Employee(reader.GetValue(0).ToString().Trim(),
-                                                                           reader.GetValue(1).ToString().Trim(),
-                                                                           DateTime.Parse(reader.GetValue(2).ToString()),
-                                                                           (long)reader.GetValue(3),
-                                                                           (bool)reader.GetValue(4),
-                                                                           reader.GetValue(5).ToString().Trim()));
+                                    Collections.employees.Add(new Employee(reader["FirstName"].ToString().Trim(),
+                                                                           reader["LastName"].ToString().Trim(),
+                                                                           DateTime.Parse(reader["DateOfBirth"].ToString()),
+                                                                           (long)reader["JMBG"],
+                                                                           (bool)reader["DeservesRaise"],
+                                                                           reader["Email"].ToString().Trim()));
                                     break;
                             }
                         }
@@ -203,15 +208,20 @@ namespace WorkerServer
         {
             string returnQuery = "";
 
-            Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+            returnQuery += SqlQueryBuilder.InsertEmployeeBuilder(employee);
+
+            Firm _firm = null;
             Department _department = null;
 
-            if (_firm != null)
+            if (validation.CheckIfFirmExists(firm.Name))
             {
-                _department = _firm.Departments.Find(d => d.Id == department.Id);
-            }
+                _firm = GetFirmById(firm.Id);
+            }    
 
-            returnQuery += SqlQueryBuilder.InsertEmployeeBuilder(employee);
+            if (validation.CheckIfDepartmentExistsInFirm(firm.Name, department.Name))
+            {
+                _department = GetDepartmentById(department.Id);
+            } 
 
             if (_firm != null && _department == null)
             {
@@ -230,7 +240,7 @@ namespace WorkerServer
         private void CollectionsAddUpdater(Firm firm, Department department, Employee employee)
         {
 
-            Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+            Firm _firm = Collections.firms.Find(f => f.Name == firm.Name);
             Department _department = null;
 
             if (_firm != null)
@@ -271,7 +281,7 @@ namespace WorkerServer
             }
         }
 
-        private void UpdateFirmId(Firm firm)
+        public void UpdateFirmId(Firm firm)
         {
             string _query = SqlQueryBuilder.SelectFirmIdBuilder(firm.Name);
 
@@ -288,7 +298,7 @@ namespace WorkerServer
                     {
                         while (reader.Read())
                         {
-                            firm.Id = (int)reader.GetValue(0);
+                            firm.Id = (int)reader["Id"];
                         }
                     }
                 }
@@ -380,7 +390,7 @@ namespace WorkerServer
         {
             //if(!Collections.firms.Contains(firm))
             //{
-            //    Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+            //    Firm _firm = Collections.firms.Find(f => f.Name == firm.Name);
             //    int _firmIndex = Collections.firms.IndexOf(_firm);
             //    firm.Departments = _firm.Departments;
             //    Collections.firms[_firmIndex] = firm;
@@ -445,7 +455,7 @@ namespace WorkerServer
                     }
                 }
 
-                Firm _firm = Collections.firms.Find(f => f.Id == firm.Id);
+                Firm _firm = Collections.firms.Find(f => f.Name == firm.Name);
                 foreach(Department _department in _firm.Departments)
                 {
                     foreach(Employee _employee in _department.Employees)
@@ -586,6 +596,109 @@ namespace WorkerServer
         }
 
         #endregion
+
+        private Firm GetFirmById(int firmId)
+        {
+            string _query = SqlQueryBuilder.SelectFirmById(firmId);
+
+            Firm returnFirm = null; 
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        returnFirm = new Firm(reader["Name"].ToString().Trim(),
+                                              (int)reader["Id"]);
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnFirm;
+        }
+
+        private Department GetDepartmentById(int departmentId)
+        {
+            string _query = SqlQueryBuilder.SelectDepartmentById(departmentId);
+
+            Department returnDepartment = null;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        returnDepartment = new Department(reader["Name"].ToString().Trim(),
+                                                          (int)reader["Id"]);
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnDepartment;
+        }
+
+        private Employee GetEmployeeById(long employeeId)
+        {
+            string _query = SqlQueryBuilder.SelectEmployeeById(employeeId);
+
+            Employee returnEmployee = null;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        returnEmployee = new Employee(reader["FirstName"].ToString().Trim(),
+                                                      reader["LastName"].ToString().Trim(),
+                                                      DateTime.Parse(reader["DateOfBirth"].ToString()),
+                                                      (long)reader["JMBG"],
+                                                      (bool)reader["DeservesRaise"],
+                                                      reader["Email"].ToString().Trim());
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnEmployee;
+        }
     }
 }
 

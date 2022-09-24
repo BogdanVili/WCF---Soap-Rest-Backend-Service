@@ -18,12 +18,10 @@ namespace WorkerService
     [ServiceBehavior(ConcurrencyMode=ConcurrencyMode.Multiple)]
     public class WorkerService : IWorkerServiceRest, IWorkerServiceSoap
     {
-        public static Database database = Database.GetInstance();
+        private static Database database = Database.GetInstance();
 
-        static WorkerService()
+        public WorkerService()
         {
-            database.ReadModels();
-
             CSVManager csvManager = new CSVManager("employee.csv");
             Thread threadCSVManager = new Thread(() => CSVManager.StartThread());
             threadCSVManager.Name = "CSVManager";
@@ -37,10 +35,11 @@ namespace WorkerService
             Department _department = department.ConvertModelRequestToModel();
             Employee _employee = employee.ConvertModelRequestToModel();
 
-            if (Validation.IsWorkerEmpty(_firm, _department, _employee))
-                return "Fields are empty! Please fill in all the fields.";
-            if (Validation.FirmContainsDepartmentName(_firm, _department))
-                return "Department with same Name but different id already exists!.";
+            if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
+                return "Some Fields are empty!";
+
+            if (database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
+                return "Same Ids already exist!";
 
             return database.AddWorker(_firm, _department, _employee);
         }
@@ -51,10 +50,10 @@ namespace WorkerService
             Department _department = department.ConvertModelRequestToModel();
             Employee _employee = employee.ConvertModelRequestToModel();
 
-            if (!Validation.ExistsInWorkings(_firm, _department, _employee))
+            if (!database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
                 return "Some Id is incorrect ";
 
-            if (Validation.IsWorkerEmpty(_firm, _department, _employee))
+            if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
                 return "Fields are empty! Please fill in all the fields.";
 
             return database.UpdateWorker(_firm, _department, _employee);
@@ -107,10 +106,11 @@ namespace WorkerService
             Department _department = department.ConvertModelRequestToModel();
             Employee _employee = employee.ConvertModelRequestToModel();
 
-            if (Validation.IsWorkerEmpty(_firm, _department, _employee))
-                return "Fields are empty! Please fill in all the fields.";
-            if (Validation.FirmContainsDepartmentName(_firm, _department))
-                return "Department with same Name but different id already exists!.";
+            if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
+                return "Some Fields are empty!";
+
+            if (database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
+                return "Same Ids already exist!";
 
             return database.AddWorker(_firm, _department, _employee);
         }
@@ -121,10 +121,10 @@ namespace WorkerService
             Department _department = department.ConvertModelRequestToModel();
             Employee _employee = employee.ConvertModelRequestToModel();
 
-            if (!Validation.ExistsInWorkings(_firm, _department, _employee))
+            if (!database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
                 return "Some Id is incorrect ";
 
-            if (Validation.IsWorkerEmpty(_firm, _department, _employee))
+            if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
                 return "Fields are empty! Please fill in all the fields.";
 
             return database.UpdateWorker(_firm, _department, _employee);
