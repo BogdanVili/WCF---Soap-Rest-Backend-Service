@@ -20,12 +20,8 @@ namespace WorkerService
     {
         private static Database database = Database.GetInstance();
 
-        private ModelRequestToModelConverter converter; 
-
         public WorkerService()
         {
-            converter = new ModelRequestToModelConverter(database);
-
             CSVManager csvManager = new CSVManager("employee.csv");
             Thread threadCSVManager = new Thread(() => CSVManager.StartThread());
             threadCSVManager.Name = "CSVManager";
@@ -35,9 +31,9 @@ namespace WorkerService
         #region REST
         public string AddWorkerRest(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
-            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
-            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
+            Firm _firm = database.converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = database.converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = database.converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
                 return "Some Fields are empty!";
@@ -50,9 +46,9 @@ namespace WorkerService
 
         public string UpdateWorkerRest(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
-            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
-            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
+            Firm _firm = database.converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = database.converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = database.converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (!database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
                 return "Some Id is incorrect ";
@@ -102,9 +98,9 @@ namespace WorkerService
         #region SOAP
         public string AddWorkerSoap(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
-            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
-            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
+            Firm _firm = database.converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = database.converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = database.converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
                 return "Some Fields are empty!";
@@ -117,9 +113,9 @@ namespace WorkerService
 
         public string UpdateWorkerSoap(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
-            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
-            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
+            Firm _firm = database.converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = database.converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = database.converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (!database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
                 return "Some Id is incorrect ";

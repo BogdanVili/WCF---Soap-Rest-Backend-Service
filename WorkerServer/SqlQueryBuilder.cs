@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WorkerServer
 {
-    public class SqlQueryBuilder
+    internal class SqlQueryBuilder
     {
         #region Select
         public static string SelectAll(string obj)
