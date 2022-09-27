@@ -23,12 +23,12 @@ namespace WorkerServer
                                   firmName);
         }
 
-        public static string SelectFirmById(int firmId)
+        public static string SelectFirmByName(string firmName)
         {
             return String.Format("SELECT * " +
                                  "FROM Firm " +
-                                 "WHERE Firm.Id = {0};\n",
-                                  firmId);
+                                 "WHERE Firm.Name = {0};\n",
+                                  firmName);
         }
 
         public static string SelectDepartmentById(int departmentId)
@@ -44,6 +44,30 @@ namespace WorkerServer
             return String.Format("SELECT * " +
                                  "FROM Employee " +
                                  "WHERE Employee.JMBG = {0};\n",
+                                  employeeId);
+        }
+
+        public static string SelectWorkingByFirmId(int firmId)
+        {
+            return String.Format("SELECT * " +
+                                 "FROM Working " +
+                                 "WHERE Working.FirmId = {0};\n",
+                                  firmId);
+        }
+
+        public static string SelectWorkingByDepartmentId(int departmentId)
+        {
+            return String.Format("SELECT * " +
+                                 "FROM Working " +
+                                 "WHERE Working.DepartmentId = {0};\n",
+                                  departmentId);
+        }
+
+        public static string SelectWorkingByEmployeeId(long employeeId)
+        {
+            return String.Format("SELECT * " +
+                                 "FROM Working " +
+                                 "WHERE Working.EmployeeId = {0};\n",
                                   employeeId);
         }
         #endregion
@@ -150,25 +174,25 @@ namespace WorkerServer
         #endregion
 
         #region Delete
-        public static string DeleteFirmBuilder(Firm firm)
+        public static string DeleteFirmBuilder(int firmId)
         {
             return String.Format("DELETE FROM Firm " +
                                  "WHERE Id = {0};\n",
-                                 firm.Id);
+                                 firmId);
         }
 
-        public static string DeleteDepartmentBuilder(Department department)
+        public static string DeleteDepartmentBuilder(int departmentId)
         {
             return String.Format("DELETE FROM Department " +
                                  "WHERE Id = {0};\n",
-                                  department.Id);
+                                  departmentId);
         }
 
-        public static string DeleteEmployeeBuilder(Employee employee)
+        public static string DeleteEmployeeBuilder(long employeeId)
         {
             return String.Format("DELETE FROM Employee " +
                                  "WHERE JMBG = {0};\n",
-                                  employee.JMBG);
+                                  employeeId);
         }
 
         public static string DeleteWorkingBuilder(Working working)

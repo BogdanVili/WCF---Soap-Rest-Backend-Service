@@ -44,7 +44,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections.cs" />
     <Compile Include="ModelCSV\EmployeeUpdateData.cs" />
     <Compile Include="ModelRequest\DeleteParameters.cs" />
     <Compile Include="ModelRequest\DepartmentRequest.cs" />

@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="CSVManager.cs" />
     <Compile Include="Database.cs" />
+    <Compile Include="ModelRequestToModelConverter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlQueryBuilder.cs" />

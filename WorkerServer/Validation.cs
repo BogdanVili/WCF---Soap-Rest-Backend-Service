@@ -49,6 +49,70 @@ namespace WorkerServer
             return returnValue;
         }
 
+        public bool CheckIfDepartmentExists(int departmentId)
+        {
+            bool returnValue = true;
+
+            string _query = SqlQueryBuilder.DepartmentExists(departmentId);
+
+            using (SqlConnection connection = new SqlConnection(database.connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnValue;
+        }
+
+        public bool CheckIfEmployeeExists(long employeeJMBG)
+        {
+            bool returnValue = true;
+
+            string _query = SqlQueryBuilder.EmployeeExists(employeeJMBG);
+
+            using (SqlConnection connection = new SqlConnection(database.connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnValue;
+        }
+
         public bool CheckIfDepartmentExistsInFirm(string firmName, string departmentName)
         {
             bool returnValue = true;

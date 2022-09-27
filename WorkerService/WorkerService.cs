@@ -20,8 +20,12 @@ namespace WorkerService
     {
         private static Database database = Database.GetInstance();
 
+        private ModelRequestToModelConverter converter; 
+
         public WorkerService()
         {
+            converter = new ModelRequestToModelConverter(database);
+
             CSVManager csvManager = new CSVManager("employee.csv");
             Thread threadCSVManager = new Thread(() => CSVManager.StartThread());
             threadCSVManager.Name = "CSVManager";
@@ -29,11 +33,11 @@ namespace WorkerService
         }
 
         #region REST
-        public string AddWorkerRest(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee)
+        public string AddWorkerRest(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = firm.ConvertModelRequestToModel();
-            Department _department = department.ConvertModelRequestToModel();
-            Employee _employee = employee.ConvertModelRequestToModel();
+            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
                 return "Some Fields are empty!";
@@ -44,11 +48,11 @@ namespace WorkerService
             return database.AddWorker(_firm, _department, _employee);
         }
 
-        public string UpdateWorkerRest(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee)
+        public string UpdateWorkerRest(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = firm.ConvertModelRequestToModel();
-            Department _department = department.ConvertModelRequestToModel();
-            Employee _employee = employee.ConvertModelRequestToModel();
+            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (!database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
                 return "Some Id is incorrect ";
@@ -61,38 +65,34 @@ namespace WorkerService
 
         public string DeleteWorkerRest(DeleteParameters deleteParameters)
         {
-            string _firmName = deleteParameters.FirmName;
-            if (_firmName != "" && _firmName != null)
+            if (deleteParameters.FirmName != null)
             {
-                if (!Collections.firms.Any(f => f.Name == _firmName))
+                if(!database.validation.CheckIfFirmExists(deleteParameters.FirmName))
                     return "Firm with that Name doesnt exist";
 
-                return database.DeleteWorker(Collections.firms.Find(f => f.Name == _firmName),
-                                             null,
-                                             null);
+                return database.DeleteWorker(deleteParameters.FirmName,
+                                             0,
+                                             0);
             }
 
-            int _departmentId = deleteParameters.DepartmentId;
-            if (_departmentId > 0)
+            if (deleteParameters.DepartmentId > 0)
             {
-
-                if (!Collections.departments.Any(d => d.Id == _departmentId))
-                    return "Department with that Name doesnt exist";
+                if(!database.validation.CheckIfDepartmentExists(deleteParameters.DepartmentId))
+                    return "Department with that Id doesnt exist";
 
                 return database.DeleteWorker(null,
-                                             Collections.departments.Find(d => d.Id == _departmentId),
-                                             null);
+                                             deleteParameters.DepartmentId,
+                                             0);
             }
 
-            long _employeeJMBG = deleteParameters.EmployeeJMBG;
-            if (_employeeJMBG > 0)
+            if (deleteParameters.EmployeeJMBG > 0)
             {
-                if (!Collections.employees.Any(e => e.JMBG == _employeeJMBG))
-                    return "Employee with that Name doesnt exist";
+                if(!database.validation.CheckIfEmployeeExists(deleteParameters.EmployeeJMBG))
+                    return "Employee with that JMBG doesnt exist";
 
                 return database.DeleteWorker(null,
-                                             null,
-                                             Collections.employees.Find(e => e.JMBG == _employeeJMBG));
+                                             0,
+                                             deleteParameters.EmployeeJMBG);
             }
 
             return "Deleting Failed, Need to send Id.\n";
@@ -100,11 +100,11 @@ namespace WorkerService
         #endregion
 
         #region SOAP
-        public string AddWorkerSoap(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee)
+        public string AddWorkerSoap(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = firm.ConvertModelRequestToModel();
-            Department _department = department.ConvertModelRequestToModel();
-            Employee _employee = employee.ConvertModelRequestToModel();
+            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (database.validation.IsWorkerEmpty(_firm, _department, _employee))
                 return "Some Fields are empty!";
@@ -115,11 +115,11 @@ namespace WorkerService
             return database.AddWorker(_firm, _department, _employee);
         }
 
-        public string UpdateWorkerSoap(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee)
+        public string UpdateWorkerSoap(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest)
         {
-            Firm _firm = firm.ConvertModelRequestToModel();
-            Department _department = department.ConvertModelRequestToModel();
-            Employee _employee = employee.ConvertModelRequestToModel();
+            Firm _firm = converter.ConvertFirmRequestToFirm(firmRequest);
+            Department _department = converter.ConvertDepartmentRequestToDepartment(departmentRequest);
+            Employee _employee = converter.ConvertEmployeeRequestToEmployee(employeeRequest);
 
             if (!database.validation.CheckIfWorkingExists(_firm.Id, _department.Id, _employee.JMBG))
                 return "Some Id is incorrect ";
@@ -132,38 +132,34 @@ namespace WorkerService
 
         public string DeleteWorkerSoap(DeleteParameters deleteParameters)
         {
-            string _firmName = deleteParameters.FirmName;
-            if (_firmName != "" && _firmName != null)
+            if (deleteParameters.FirmName != null)
             {
-                if (!Collections.firms.Any(f => f.Name == _firmName))
+                if (!database.validation.CheckIfFirmExists(deleteParameters.FirmName))
                     return "Firm with that Name doesnt exist";
 
-                return database.DeleteWorker(Collections.firms.Find(f => f.Name == _firmName),
-                                             null,
-                                             null);
+                return database.DeleteWorker(deleteParameters.FirmName,
+                                             0,
+                                             0);
             }
 
-            int _departmentId = deleteParameters.DepartmentId;
-            if (_departmentId > 0)
+            if (deleteParameters.DepartmentId > 0)
             {
-
-                if (!Collections.departments.Any(d => d.Id == _departmentId))
-                    return "Department with that Name doesnt exist";
+                if (!database.validation.CheckIfDepartmentExists(deleteParameters.DepartmentId))
+                    return "Department with that Id doesnt exist";
 
                 return database.DeleteWorker(null,
-                                             Collections.departments.Find(d => d.Id == _departmentId),
-                                             null);
+                                             deleteParameters.DepartmentId,
+                                             0);
             }
 
-            long _employeeJMBG = deleteParameters.EmployeeJMBG;
-            if (_employeeJMBG > 0)
+            if (deleteParameters.EmployeeJMBG > 0)
             {
-                if (!Collections.employees.Any(e => e.JMBG == _employeeJMBG))
-                    return "Employee with that Name doesnt exist";
+                if (!database.validation.CheckIfEmployeeExists(deleteParameters.EmployeeJMBG))
+                    return "Employee with that JMBG doesnt exist";
 
                 return database.DeleteWorker(null,
-                                             null,
-                                             Collections.employees.Find(e => e.JMBG == _employeeJMBG));
+                                             0,
+                                             deleteParameters.EmployeeJMBG);
             }
 
             return "Deleting Failed, Need to send Id.\n";

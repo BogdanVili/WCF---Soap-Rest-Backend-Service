@@ -36,11 +36,5 @@ namespace Common.ModelRequest
             Name = name;
             Id = id;
         }
-
-        public Department ConvertModelRequestToModel()
-        {
-            return new Department(this.Name, 
-                                  this.Id);
-        }
     }
 }

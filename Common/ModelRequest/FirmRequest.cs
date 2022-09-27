@@ -37,11 +37,5 @@ namespace Common.ModelRequest
             Name = name;
             Id = id;
         }
-
-        public Firm ConvertModelRequestToModel()
-        {
-            return new Firm(this.Name,
-                            Collections.GetCurrentFirmId(this.Name));
-        }
     }
 }

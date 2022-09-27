@@ -73,15 +73,5 @@ namespace Common.ModelRequest
             DeservesRaise = deservesRaise;
             Email = email;
         }
-
-        public Employee ConvertModelRequestToModel()
-        {
-            return new Employee(this.FirstName,
-                                this.LastName,
-                                DateTime.ParseExact(this.DateOfBirthString, "yyyy-MM-dd", null),
-                                this.JMBG,
-                                this.DeservesRaise,
-                                this.Email);
-        }
     }
 }

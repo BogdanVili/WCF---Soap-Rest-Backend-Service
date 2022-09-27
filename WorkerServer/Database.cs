@@ -20,7 +20,6 @@ namespace WorkerServer
         private Database()
         {
             Connect();
-            ReadModels();
             validation = new Validation(this);
         }
 
@@ -71,108 +70,6 @@ namespace WorkerServer
             return true;
         }
 
-        
-
-        #region Read
-
-        public void ReadModels()
-        {
-            ReadTable("Working");
-            ReadTable("Firm");
-            ReadTable("Department");
-            ReadTable("Employee");
-
-            ConnectModelsWithWorking();
-
-            Console.WriteLine("Loading Models done.\n");
-        }
-
-        private void ReadTable(string tableName)
-        {
-            string _query = "";
-            _query += SqlQueryBuilder.SelectAll(tableName);
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    SqlDataReader reader = command.ExecuteReader();
-                    DataTable schemaTable = reader.GetSchemaTable();
-                    
-                    if (reader.HasRows)
-                    {
-                        while (reader.Read())
-                        {
-                            switch (tableName)
-                            {
-                                case "Working":
-                                    Collections.workings.Add(new Working((int)reader["DepartmentId"],
-                                                                         (long)reader["EmployeeId"],
-                                                                         (int)reader["FirmId"]));
-                                    break;
-                                case "Firm":
-                                    Collections.firms.Add(new Firm(reader["Name"].ToString().Trim(),
-                                                                   (int)reader["Id"]));
-                                    break;
-                                case "Department":
-                                    Collections.departments.Add(new Department(reader["Name"].ToString().Trim(),
-                                                                               (int)reader["Id"]));
-                                    break;
-                                case "Employee":
-                                    Collections.employees.Add(new Employee(reader["FirstName"].ToString().Trim(),
-                                                                           reader["LastName"].ToString().Trim(),
-                                                                           DateTime.Parse(reader["DateOfBirth"].ToString()),
-                                                                           (long)reader["JMBG"],
-                                                                           (bool)reader["DeservesRaise"],
-                                                                           reader["Email"].ToString().Trim()));
-                                    break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("No rows found.");
-                    }
-                }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                }
-                finally
-                {
-                    Console.WriteLine("Reading " + tableName + " Successful");
-                    connection.Close();
-                }
-            }
-        }
-
-        private void ConnectModelsWithWorking()
-        {
-            Firm _currentFirm;
-            Department _currentDepartment;
-            Employee _currentEmployee;
-
-            foreach (Working working in Collections.workings)
-            {
-                _currentFirm = Collections.firms.Find(f => f.Id == working.FirmId);
-                _currentDepartment = Collections.departments.Find(d => d.Id == working.DepartmentId);
-                _currentEmployee = Collections.employees.Find(e => e.JMBG == working.EmployeeId);
-                if (!_currentFirm.Departments.Contains(_currentDepartment))
-                {
-                    _currentFirm.Departments.Add(_currentDepartment);
-                }
-
-                if(!_currentFirm.Departments.Find(d => d.Id == working.DepartmentId).Employees.Contains(_currentEmployee))
-                {
-                    _currentFirm.Departments.Find(d => d.Id == working.DepartmentId).Employees.Add(_currentEmployee);
-                }
-            }
-        }
-
-        #endregion
-
         #region Add
 
         public string AddWorker(Firm firm, Department department, Employee employee)
@@ -195,11 +92,9 @@ namespace WorkerServer
                 return "Adding Failed\n";
             }
 
-            UpdateFirmId(firm);
+            firm.Id = GetFirmId(firm.Name);
 
             AddWorking(firm.Id, department.Id, employee.JMBG);
-
-            CollectionsAddUpdater(firm, department, employee);
 
             return "Added Successfully\n";
         }
@@ -215,7 +110,7 @@ namespace WorkerServer
 
             if (validation.CheckIfFirmExists(firm.Name))
             {
-                _firm = GetFirmById(firm.Id);
+                _firm = GetFirmByName(firm.Name);
             }    
 
             if (validation.CheckIfDepartmentExistsInFirm(firm.Name, department.Name))
@@ -237,53 +132,11 @@ namespace WorkerServer
             return returnQuery;
         }
 
-        private void CollectionsAddUpdater(Firm firm, Department department, Employee employee)
+        public int GetFirmId(string firmName)
         {
+            string _query = SqlQueryBuilder.SelectFirmIdBuilder(firmName);
 
-            Firm _firm = Collections.firms.Find(f => f.Name == firm.Name);
-            Department _department = null;
-
-            if (_firm != null)
-            {
-                _department = _firm.Departments.Find(d => d.Id == department.Id);
-            }
-
-            if (_firm != null && _department != null)
-            {
-                _department.Employees.Add(employee);
-                Collections.employees.Add(employee);
-
-                Collections.workings.Add(new Working(department.Id, employee.JMBG, firm.Id));
-            }
-
-            if (_firm != null && _department == null)
-            {
-                _firm.Departments.Add(department);
-                Collections.departments.Add(department);
-
-                _firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
-                Collections.employees.Add(employee);
-
-                Collections.workings.Add(new Working(department.Id, employee.JMBG, firm.Id));
-            }
-
-            if (_firm == null)
-            {
-                firm.Departments.Add(department);
-                Collections.departments.Add(department);
-
-                firm.Departments.Find(d => d.Id == department.Id).Employees.Add(employee);
-                Collections.employees.Add(employee);
-
-                Collections.firms.Add(firm);
-
-                Collections.workings.Add(new Working(department.Id, employee.JMBG, firm.Id));
-            }
-        }
-
-        public void UpdateFirmId(Firm firm)
-        {
-            string _query = SqlQueryBuilder.SelectFirmIdBuilder(firm.Name);
+            int returnFirmId = 0;
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -294,12 +147,9 @@ namespace WorkerServer
                     SqlDataReader reader = command.ExecuteReader();
                     DataTable schemaTable = reader.GetSchemaTable();
 
-                    if (reader.HasRows)
+                    if (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            firm.Id = (int)reader["Id"];
-                        }
+                        returnFirmId = (int)reader["Id"];
                     }
                 }
                 catch (SqlException e)
@@ -311,30 +161,17 @@ namespace WorkerServer
                     connection.Close();
                 }
             }
+
+            return returnFirmId;
         }
 
         private void AddWorking(int firmId, int departmentId, long employeeId)
         {
             string _query = SqlQueryBuilder.InsertWorkingBuilder(firmId, departmentId, employeeId);
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                    SqlCommand command = new SqlCommand(_query, connection);
-                    command.ExecuteNonQuery();
-                }
-                catch (SqlException e)
-                {
-                    Console.WriteLine("Error Generated. Details: " + e.ToString());
-                    connection.Close();
-                }
-                finally
-                {
-                    connection.Close();
-                }
-            }
+            bool _successfulExecution = executeNonQuery(_query);
+
+            return;
         }
         #endregion
 
@@ -354,14 +191,11 @@ namespace WorkerServer
             if (_successfulExecution)
             {
                 Console.WriteLine("Updated Successfully\n");
-
             }
             else
             {
                 return "Updating failed\n";
             }
-
-            CollectionsUpdateUpdater(firm, department, employee);
             
             return "Updated Successfully\n";
         }
@@ -369,56 +203,23 @@ namespace WorkerServer
         private string UpdateQueryConstructor(Firm firm, Department department, Employee employee)
         {
             string returnQuery = "";
-            if (!Collections.firms.Contains(firm))
-            {
-                returnQuery += SqlQueryBuilder.UpdateFirmBuilder(firm);
-            }
 
-            if(!Collections.departments.Contains(department))
-            {
-                returnQuery += SqlQueryBuilder.UpdateDepartmentBuilder(department);
-            }
+            //returnQuery += SqlQueryBuilder.UpdateFirmBuilder(firm);
+            
+            returnQuery += SqlQueryBuilder.UpdateDepartmentBuilder(department);
 
-            if(!Collections.employees.Contains(employee))
-            {
-                returnQuery += SqlQueryBuilder.UpdateEmployeeBuilder(employee);
-            }
+            returnQuery += SqlQueryBuilder.UpdateEmployeeBuilder(employee);
+            
             return returnQuery;
-        }
-
-        private void CollectionsUpdateUpdater(Firm firm, Department department, Employee employee)
-        {
-            //if(!Collections.firms.Contains(firm))
-            //{
-            //    Firm _firm = Collections.firms.Find(f => f.Name == firm.Name);
-            //    int _firmIndex = Collections.firms.IndexOf(_firm);
-            //    firm.Departments = _firm.Departments;
-            //    Collections.firms[_firmIndex] = firm;
-            //}
-
-            if (!Collections.departments.Contains(department))
-            {
-                Department _department = Collections.departments.Find(d => d.Id == department.Id);
-                int _departmentIndex = Collections.departments.IndexOf(_department);
-                department.Employees = _department.Employees;
-                Collections.departments[_departmentIndex] = department;
-            }
-
-            if(!Collections.employees.Contains(employee))
-            {
-                Employee _employee = Collections.employees.Find(e => e.JMBG == employee.JMBG);
-                int _employeeIndex = Collections.employees.IndexOf(_employee);
-                Collections.employees[_employeeIndex] = employee;
-            }
         }
 
         #endregion
 
         #region Delete
 
-        public string DeleteWorker(Firm firm, Department department, Employee employee)
+        public string DeleteWorker(string firmName, int departmentId, long employeeId)
         {
-            string _query = DeleteQueryConstructor(firm, department, employee);
+            string _query = DeleteQueryConstructor(firmName, departmentId, employeeId);
 
             if (_query == "")
             {
@@ -436,122 +237,79 @@ namespace WorkerServer
                 return "Deleting Failed\n";
             }
 
-            CollectionsDeleteUpdater(firm, department, employee);
-
             return "Deleted Successfully\n";
         }
 
-        private string DeleteQueryConstructor(Firm firm, Department department, Employee employee)
+        private string DeleteQueryConstructor(string firmName, int departmentId, long employeeId)
         {
             string returnQuery = "";
 
-            if(firm != null)
+            if(firmName != null)
             {
-                foreach(Working working in Collections.workings)
+                Firm _firm = GetFirmByName(firmName);
+
+                List<Working> _workings = GetWorkingsByFirmId(_firm.Id);
+
+                foreach(Working _working in _workings)
                 {
-                    if(working.FirmId == firm.Id)
-                    {
-                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(working);
-                    }
+                    returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(_working);
                 }
 
-                Firm _firm = Collections.firms.Find(f => f.Name == firm.Name);
-                foreach(Department _department in _firm.Departments)
+                foreach(int _firmId in _workings.Select(w => w.FirmId).Distinct())
                 {
-                    foreach(Employee _employee in _department.Employees)
-                    {
-                        returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employee);
-                    }
-                    returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(_department);
+                    returnQuery += SqlQueryBuilder.DeleteFirmBuilder(_firmId);
                 }
-                returnQuery += SqlQueryBuilder.DeleteFirmBuilder(firm);
+
+                foreach(int _departmentId in _workings.Select(w => w.DepartmentId).Distinct())
+                {
+                    returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(_departmentId);
+                }
+
+                foreach(int _employeeId in _workings.Select(w => w.EmployeeId).Distinct())
+                {
+                    returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employeeId);
+                }
             }
 
-            if (department != null)
+            if (departmentId > 0)
             {
-                foreach (Working _working in Collections.workings)
+                Department _department = GetDepartmentById(departmentId);
+
+                List<Working> _workings = GetWorkingsByDepartmentId(_department.Id);
+
+                foreach (Working _working in _workings)
                 {
-                    if (_working.DepartmentId == department.Id)
-                    {
-                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(_working);
-                    }
+                    returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(_working);
                 }
 
-                Department _department = Collections.departments.Find(d => d.Id == department.Id);
-                foreach(Employee _employee in _department.Employees)
+                foreach (int _departmentId in _workings.Select(w => w.DepartmentId).Distinct())
                 {
-                    returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employee);
+                    returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(_departmentId);
                 }
-                returnQuery += SqlQueryBuilder.DeleteDepartmentBuilder(department);
+
+                foreach (int _employeeId in _workings.Select(w => w.EmployeeId).Distinct())
+                {
+                    returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employeeId);
+                }
             }
 
-            if (employee != null)
+            if (employeeId > 0)
             {
-                foreach (Working working in Collections.workings)
+                Employee _employee = GetEmployeeById(employeeId);
+                List<Working> _workings = GetWorkingsByEmployeeId(_employee.JMBG);
+
+                foreach (Working _working in _workings)
                 {
-                    if (working.EmployeeId == employee.JMBG)
-                    {
-                        returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(working);
-                    }
+                    returnQuery += SqlQueryBuilder.DeleteWorkingBuilder(_working);
                 }
 
-                returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(employee);
+                foreach (int _employeeId in _workings.Select(w => w.EmployeeId).Distinct())
+                {
+                    returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employeeId);
+                }
             }
 
             return returnQuery;
-        }
-
-        private void CollectionsDeleteUpdater(Firm firm, Department department, Employee employee)
-        {
-            if (firm != null)
-            {
-                foreach(Working _working in Collections.workings)
-                {
-                    if(_working.FirmId == firm.Id)
-                    {
-                        Collections.employees.RemoveAll(e => e.JMBG == _working.EmployeeId);
-
-                        Department _department = Collections.departments.Find(d => d.Id == _working.DepartmentId);
-                        if(_department != null)
-                        {
-                            Collections.departments.Remove(_department);
-                        }
-
-                        Firm _firm = Collections.firms.Find(f => f.Id == _working.FirmId);
-                        if(_firm != null)
-                        {
-                            Collections.firms.Remove(_firm);
-                        }
-                    }
-                }
-
-                Collections.workings.RemoveAll(w => w.FirmId == firm.Id);
-            }
-
-            if (department != null)
-            {
-                foreach (Working _working in Collections.workings)
-                {
-                    if(_working.DepartmentId == department.Id)
-                    {
-                        Collections.employees.RemoveAll(e => e.JMBG == _working.EmployeeId);
-
-                        Department _department = Collections.departments.Find(d => d.Id == _working.DepartmentId);
-                        if (_department != null)
-                        {
-                            Collections.departments.Remove(_department);
-                        }
-                    }
-                }
-
-                Collections.workings.RemoveAll(w => w.DepartmentId == department.Id);
-            }
-
-            if (employee != null)
-            {
-                Collections.employees.Remove(employee);
-                Collections.workings.RemoveAll(w => w.EmployeeId == employee.JMBG);
-            }
         }
 
         #endregion
@@ -568,15 +326,13 @@ namespace WorkerServer
             }
 
             executeNonQuery(_query);
-
-            CollectionsUpdateEmployeeDataUpdater(employeeUpdateData);
         }
 
         private string UpdateEmployeeDataQueryConstructor(EmployeeUpdateData employeeUpdateData)
         {
             string returnQuery = "";
-
-            if (Collections.employees.Any(e => e.JMBG == employeeUpdateData.JMBG))
+            
+            if (validation.CheckIfEmployeeExists(employeeUpdateData.JMBG))
             {
                 returnQuery += SqlQueryBuilder.UpdateEmployeeDataBuilder(employeeUpdateData);
             }
@@ -584,22 +340,11 @@ namespace WorkerServer
             return returnQuery;
         }
 
-        private void CollectionsUpdateEmployeeDataUpdater(EmployeeUpdateData employeeUpdateData)
-        {
-            if (Collections.employees.Any(e => e.JMBG == employeeUpdateData.JMBG))
-            {
-                Employee _employee = Collections.employees.Find(e => e.JMBG == employeeUpdateData.JMBG);
-                int _employeeIndex = Collections.employees.IndexOf(_employee);
-                Collections.employees[_employeeIndex].DeservesRaise = employeeUpdateData.DeservesRaise;
-                Collections.employees[_employeeIndex].Email = employeeUpdateData.Email;
-            }
-        }
-
         #endregion
 
-        private Firm GetFirmById(int firmId)
+        private Firm GetFirmByName(string firmName)
         {
-            string _query = SqlQueryBuilder.SelectFirmById(firmId);
+            string _query = SqlQueryBuilder.SelectFirmByName(firmName);
 
             Firm returnFirm = null; 
 
@@ -698,6 +443,117 @@ namespace WorkerServer
             }
 
             return returnEmployee;
+        }
+
+        private List<Working> GetWorkingsByFirmId(int firmId)
+        {
+            string _query = SqlQueryBuilder.SelectWorkingByFirmId(firmId);
+
+            List<Working> returnWorkings = new List<Working>();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    while(reader.HasRows)
+                    {
+                        if(reader.Read())
+                        {
+                            returnWorkings.Add(new Working((int)reader["DepartmentId"],
+                                                           (long)reader["EmployeeId"],
+                                                           (int)reader["FirmId"]));
+                        }
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnWorkings;
+        }
+
+        private List<Working> GetWorkingsByDepartmentId(int departmentId)
+        {
+            string _query = SqlQueryBuilder.SelectWorkingByDepartmentId(departmentId);
+
+            List<Working> returnWorkings = new List<Working>();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.HasRows)
+                    {
+                        if (reader.Read())
+                        {
+                            returnWorkings.Add(new Working((int)reader["DepartmentId"],
+                                                           (long)reader["EmployeeId"],
+                                                           (int)reader["FirmId"]));
+                        }
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnWorkings;
+        }
+
+        private List<Working> GetWorkingsByEmployeeId(long employeeId)
+        {
+            string _query = SqlQueryBuilder.SelectWorkingByEmployeeId(employeeId);
+
+            List<Working> returnWorkings = new List<Working>();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    SqlCommand command = new SqlCommand(_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.HasRows)
+                    {
+                        if (reader.Read())
+                        {
+                            returnWorkings.Add(new Working((int)reader["DepartmentId"],
+                                                           (long)reader["EmployeeId"],
+                                                           (int)reader["FirmId"]));
+                        }
+                    }
+                }
+                catch (SqlException e)
+                {
+                    Console.WriteLine("Error Generated. Details: " + e.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
+            }
+
+            return returnWorkings;
         }
     }
 }
