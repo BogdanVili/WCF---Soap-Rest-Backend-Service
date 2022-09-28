@@ -22,7 +22,7 @@ namespace WorkerService
            BodyStyle = WebMessageBodyStyle.Wrapped,
            RequestFormat = WebMessageFormat.Xml,
            ResponseFormat = WebMessageFormat.Xml)]
-        string AddWorkerSoap(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
+        string AddWorkerSoap(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/UpdateWorkerSoap",
@@ -30,7 +30,7 @@ namespace WorkerService
            BodyStyle = WebMessageBodyStyle.Wrapped,
            RequestFormat = WebMessageFormat.Xml,
            ResponseFormat = WebMessageFormat.Xml)]
-        string UpdateWorkerSoap(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
+        string UpdateWorkerSoap(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/DeleteWorkerSoap",

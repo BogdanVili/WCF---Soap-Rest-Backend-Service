@@ -44,23 +44,23 @@ namespace WorkerServer
 
             if (firmName != null)
             {
-                DeleteFirm(firmName, returnQuery);
+                DeleteFirm(firmName, ref returnQuery);
             }
 
             if (departmentId > 0)
             {
-                DeleteDepartment(departmentId, returnQuery);
+                DeleteDepartment(departmentId, ref returnQuery);
             }
 
             if (employeeId > 0)
             {
-                DeleteEmployee(employeeId, returnQuery);
+                DeleteEmployee(employeeId, ref returnQuery);
             }
 
             return returnQuery;
         }
 
-        private void DeleteDepartment(int departmentId, string returnQuery)
+        private void DeleteDepartment(int departmentId, ref string returnQuery)
         {
             Department _department = modelGetter.GetDepartmentById(departmentId);
 
@@ -82,7 +82,7 @@ namespace WorkerServer
             }
         }
 
-        private void DeleteEmployee(long employeeId, string returnQuery)
+        private void DeleteEmployee(long employeeId, ref string returnQuery)
         {
             Employee _employee = modelGetter.GetEmployeeById(employeeId);
             List<Working> _workings = modelGetter.GetWorkingsByEmployeeId(_employee.JMBG);
@@ -98,7 +98,7 @@ namespace WorkerServer
             }
         }
 
-        private void DeleteFirm(string firmName, string returnQuery)
+        private void DeleteFirm(string firmName, ref string returnQuery)
         {
             Firm _firm = modelGetter.GetFirmByName(firmName);
 
@@ -124,7 +124,6 @@ namespace WorkerServer
                 returnQuery += SqlQueryBuilder.DeleteEmployeeBuilder(_employeeId);
             }
         }
-
 
         public string Update(Firm firm, Department department, Employee employee)
         {

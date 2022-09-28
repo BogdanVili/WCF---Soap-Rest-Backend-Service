@@ -1,6 +1,7 @@
 ﻿using Common.Model;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace WorkerServer
@@ -28,10 +29,13 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    if (reader.Read())
+                    if(reader.HasRows)
                     {
-                        returnDepartment = new Department(reader["Name"].ToString().Trim(),
-                                                          (int)reader["Id"]);
+                        while (reader.Read())
+                        {
+                            returnDepartment = new Department(reader["Name"].ToString().Trim(),
+                                                              (int)reader["Id"]);
+                        }
                     }
                 }
                 catch (SqlException e)
@@ -60,15 +64,18 @@ namespace WorkerServer
                     connection.Open();
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
-
-                    if (reader.Read())
+                    
+                    if(reader.HasRows)
                     {
-                        returnEmployee = new Employee(reader["FirstName"].ToString().Trim(),
-                                                      reader["LastName"].ToString().Trim(),
-                                                      DateTime.Parse(reader["DateOfBirth"].ToString()),
-                                                      (long)reader["JMBG"],
-                                                      (bool)reader["DeservesRaise"],
-                                                      reader["Email"].ToString().Trim());
+                        while (reader.Read())
+                        {
+                            returnEmployee = new Employee(reader["FirstName"].ToString().Trim(),
+                                                          reader["LastName"].ToString().Trim(),
+                                                          DateTime.Parse(reader["DateOfBirth"].ToString()),
+                                                          (long)reader["JMBG"],
+                                                          (bool)reader["DeservesRaise"],
+                                                          reader["Email"].ToString().Trim());
+                        }
                     }
                 }
                 catch (SqlException e)
@@ -98,10 +105,13 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    if (reader.Read())
+                    if(reader.HasRows)
                     {
-                        returnFirm = new Firm(reader["Name"].ToString().Trim(),
-                                              (int)reader["Id"]);
+                        while (reader.Read())
+                        {
+                            returnFirm = new Firm(reader["Name"].ToString().Trim(),
+                                                  (int)reader["Id"]);
+                        }
                     }
                 }
                 catch (SqlException e)
@@ -131,9 +141,9 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    while (reader.HasRows)
+                    if (reader.HasRows)
                     {
-                        if (reader.Read())
+                        while (reader.Read())
                         {
                             returnWorkings.Add(new Working((int)reader["DepartmentId"],
                                                            (long)reader["EmployeeId"],
@@ -168,9 +178,9 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    while (reader.HasRows)
+                    if (reader.HasRows)
                     {
-                        if (reader.Read())
+                        while (reader.Read())
                         {
                             returnWorkings.Add(new Working((int)reader["DepartmentId"],
                                                            (long)reader["EmployeeId"],
@@ -205,9 +215,9 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    while (reader.HasRows)
+                    if (reader.HasRows)
                     {
-                        if (reader.Read())
+                        while (reader.Read())
                         {
                             returnWorkings.Add(new Working((int)reader["DepartmentId"],
                                                            (long)reader["EmployeeId"],
@@ -234,7 +244,7 @@ namespace WorkerServer
 
             int returnFirmId = 0;
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlConnection connection = new SqlConnection(database.connectionString))
             {
                 try
                 {
@@ -243,9 +253,12 @@ namespace WorkerServer
                     SqlDataReader reader = command.ExecuteReader();
                     DataTable schemaTable = reader.GetSchemaTable();
 
-                    if (reader.Read())
+                    if(reader.HasRows)
                     {
-                        returnFirmId = (int)reader["Id"];
+                        while (reader.Read())
+                        {
+                            returnFirmId = (int)reader["Id"];
+                        }
                     }
                 }
                 catch (SqlException e)

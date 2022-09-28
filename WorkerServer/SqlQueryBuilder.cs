@@ -15,6 +15,7 @@ namespace WorkerServer
         {
             return String.Format("SELECT * FROM {0};\n", obj);
         }
+
         public static string SelectFirmIdBuilder(string firmName)
         {
             return String.Format("SELECT Id " +
@@ -27,7 +28,7 @@ namespace WorkerServer
         {
             return String.Format("SELECT * " +
                                  "FROM Firm " +
-                                 "WHERE Firm.Name = {0};\n",
+                                 "WHERE Firm.Name = \'{0}\';\n",
                                   firmName);
         }
 
@@ -93,7 +94,7 @@ namespace WorkerServer
 
         public static string DepartmentNameExistsInFirm(string firmName, string departmentName)
         {
-            return String.Format("EXEC DepartmentNameExistsInFirm \'{0}\', \'{1}\'",
+            return String.Format("EXEC DepartmentNameExistsInFirm \'{0}\', \'{1}\';\n",
                                   firmName,
                                   departmentName);
         }

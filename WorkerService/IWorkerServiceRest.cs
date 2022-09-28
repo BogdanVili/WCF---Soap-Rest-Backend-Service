@@ -22,7 +22,7 @@ namespace WorkerService
                    BodyStyle = WebMessageBodyStyle.Wrapped,
                    RequestFormat = WebMessageFormat.Json,
                    ResponseFormat = WebMessageFormat.Json)]
-        string AddWorkerRest(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
+        string AddWorkerRest(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/UpdateWorkerRest",
@@ -30,7 +30,7 @@ namespace WorkerService
            BodyStyle = WebMessageBodyStyle.Wrapped,
            RequestFormat = WebMessageFormat.Json,
            ResponseFormat = WebMessageFormat.Json)]
-        string UpdateWorkerRest(FirmRequest firm, DepartmentRequest department, EmployeeRequest employee);
+        string UpdateWorkerRest(FirmRequest firmRequest, DepartmentRequest departmentRequest, EmployeeRequest employeeRequest);
 
         [OperationContract]
         [WebInvoke(UriTemplate = "/DeleteWorkerRest",

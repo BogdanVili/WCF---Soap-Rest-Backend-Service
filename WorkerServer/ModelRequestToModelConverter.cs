@@ -18,7 +18,7 @@ namespace WorkerServer
         public Firm ConvertFirmRequestToFirm(FirmRequest firmRequest)
         {
             return new Firm(firmRequest.Name,
-                            database.GetFirmId(firmRequest.Name));
+                            database.modelGetter.GetFirmId(firmRequest.Name));
         }
 
         public Department ConvertDepartmentRequestToDepartment(DepartmentRequest departmentRequest)

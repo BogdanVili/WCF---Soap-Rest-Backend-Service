@@ -31,9 +31,12 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    if (reader.Read())
+                    if(reader.HasRows)
                     {
-                        returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        while (reader.Read())
+                        {
+                            returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        }
                     }
                 }
                 catch (SqlException e)
@@ -63,9 +66,12 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    if (reader.Read())
+                    if(reader.HasRows)
                     {
-                        returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        while (reader.Read())
+                        {
+                            returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        }
                     }
                 }
                 catch (SqlException e)
@@ -94,10 +100,13 @@ namespace WorkerServer
                     connection.Open();
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
-
-                    if (reader.Read())
+                    
+                    if(reader.HasRows)
                     {
-                        returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        while (reader.Read())
+                        {
+                            returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        }
                     }
                 }
                 catch (SqlException e)
@@ -127,9 +136,12 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    if (reader.Read())
+                    if(reader.HasRows)
                     {
-                        returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        while (reader.Read())
+                        {
+                            returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        }
                     }
                 }
                 catch (SqlException e)
@@ -159,9 +171,12 @@ namespace WorkerServer
                     SqlCommand command = new SqlCommand(_query, connection);
                     SqlDataReader reader = command.ExecuteReader();
 
-                    if (reader.Read())
+                    if(reader.HasRows)
                     {
-                        returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        while (reader.Read())
+                        {
+                            returnValue = Boolean.Parse(reader["ReturnValue"].ToString());
+                        }
                     }
                 }
                 catch (SqlException e)
