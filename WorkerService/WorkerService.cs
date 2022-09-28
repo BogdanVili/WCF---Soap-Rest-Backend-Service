@@ -23,9 +23,7 @@ namespace WorkerService
         public WorkerService()
         {
             CSVManager csvManager = new CSVManager("employee.csv");
-            Thread threadCSVManager = new Thread(() => CSVManager.StartThread());
-            threadCSVManager.Name = "CSVManager";
-            threadCSVManager.Start();
+            csvManager.StartThread();
         }
 
         #region REST

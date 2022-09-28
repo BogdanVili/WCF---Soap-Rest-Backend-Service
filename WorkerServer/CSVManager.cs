@@ -23,19 +23,15 @@ namespace WorkerServer
             FileName = fileName;
         }
 
-        public static void StartThread()
+        public void StartThread()
         {
-            while (true)
-            {
-                ReadData();
-                Thread.Sleep(2000);
-                //Timer timer = new Timer();
-            }
+            Timer timer = new Timer(ReadData, null, 0, 2000);
         }
 
-        private static void ReadData()
+        private void ReadData(object state)
         {
-            string path = Path.GetFullPath("../../../WorkerServer/Data/" + FileName);
+            //string path = Path.GetFullPath("../../../WorkerServer/Data/" + FileName);
+            string path = "C:\\Users\\bokic\\source\\repos\\SchneiderZadatak1\\WorkerServer\\Data\\" + FileName;
             FileInfo fileInfo = new FileInfo(path);
             if(IsFileInUse(fileInfo))
             {

@@ -18,9 +18,7 @@ namespace WorkerServer
             Database database = Database.GetInstance();        
 
             CSVManager csvManager = new CSVManager("employee.csv");
-            Thread threadCSVManager = new Thread(() => CSVManager.StartThread());
-            threadCSVManager.Name = "CSVManager";
-            threadCSVManager.Start();
+            csvManager.StartThread();
 
             Console.ReadKey();
         }
